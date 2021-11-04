@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.20)
+project(photon_mapping LANGUAGES CXX)
+
+option(BUILD_TESTS "build tests" OFF)
+
+# pm(photon_mapping)
+add_library(pm INTERFACE)
+target_include_directories(pm INTERFACE "include")
+target_compile_features(pm INTERFACE cxx_std_20)
+set_target_properties(pm PROPERTIES CXX_EXTENSIONS OFF)
+
+# examples
+add_subdirectory("examples")
+
+# tests
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
