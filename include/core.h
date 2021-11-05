@@ -60,4 +60,10 @@ struct Ray {
   Vec3 operator()(float t) const { return origin_ + t * direction_; }
 };
 
+struct IntersectInfo {
+  float t;
+  Vec3 hitPos;
+  Vec3 hitNormal;
+};
+
 #endif
