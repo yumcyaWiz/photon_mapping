@@ -1,5 +1,6 @@
 #ifndef _CORE_H
 #define _CORE_H
+#include <cmath>
 #include <limits>
 
 struct Vec3 {
@@ -56,6 +57,10 @@ inline Vec3 cross(const Vec3& v1, const Vec3& v2) {
   return Vec3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
               v1.x * v2.y - v1.y * v2.x);
 }
+
+inline float length(const Vec3& v) { return std::sqrt(dot(v, v)); }
+inline float length2(const Vec3& v) { return dot(v, v); }
+inline Vec3 normalize(const Vec3& v) { return v / length(v); }
 
 struct Ray {
   Vec3 origin;
