@@ -7,6 +7,7 @@
 #include "material.h"
 
 class Shape {
+ public:
   virtual bool intersect(const Ray& ray, IntersectInfo& info) const = 0;
 };
 
@@ -40,11 +41,12 @@ class Sphere : public Shape {
 };
 
 class Plane : public Shape {
- public:
+ private:
   const Vec3 leftCornerPoint;
   const Vec3 right;
   const Vec3 up;
 
+ public:
   Plane(const Vec3& leftCornerPoint, const Vec3& right, const Vec3& up)
       : leftCornerPoint(leftCornerPoint), right(right), up(up) {}
 
@@ -82,6 +84,10 @@ class Primitive {
   Primitive(const std::shared_ptr<Shape>& shape,
             const std::shared_ptr<Material>& material)
       : shape(shape), material(material) {}
+
+  bool intersect(const Ray& ray, IntersectInfo& info) const {
+    return shape->intersect(ray, info);
+  }
 
   Vec3 sampleBRDF(const Vec3& wo, Vec3& wi, float& pdf);
 };
