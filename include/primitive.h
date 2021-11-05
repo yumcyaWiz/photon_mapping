@@ -1,8 +1,10 @@
 #ifndef _PRIMITIVE_H
 #define _PRIMITIVE_H
 #include <cmath>
+#include <memory>
 
 #include "core.h"
+#include "material.h"
 
 class Shape {
   virtual bool intersect(const Ray& ray, IntersectInfo& info) const = 0;
@@ -69,6 +71,19 @@ class Plane : public Shape {
     info.hitNormal = normal;
     return true;
   }
+};
+
+class Primitive {
+ private:
+  std::shared_ptr<Shape> shape;
+  std::shared_ptr<Material> material;
+
+ public:
+  Primitive(const std::shared_ptr<Shape>& shape,
+            const std::shared_ptr<Material>& material)
+      : shape(shape), material(material) {}
+
+  Vec3 sampleBRDF(const Vec3& wo, Vec3& wi, float& pdf);
 };
 
 #endif
