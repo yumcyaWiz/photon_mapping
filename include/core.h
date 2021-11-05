@@ -66,7 +66,7 @@ struct Ray {
   Vec3 origin;
   Vec3 direction;
   static constexpr float tmin = 1e-3;
-  static constexpr float tmax = std::numeric_limits<float>::max();
+  mutable float tmax = std::numeric_limits<float>::max();
 
   Ray(const Vec3& origin, const Vec3& direction)
       : origin(origin), direction(direction) {}
