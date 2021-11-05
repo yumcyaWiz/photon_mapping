@@ -1,7 +1,18 @@
 #ifndef _CORE_H
 #define _CORE_H
 #include <cmath>
+#include <iostream>
 #include <limits>
+
+constexpr float PI = 3.14159265359;
+constexpr float PI_MUL_2 = 2.0f * PI;
+constexpr float PI_MUL_4 = 4.0f * PI;
+
+constexpr float PI_DIV_2 = 0.5f * PI;
+constexpr float PI_DIV_4 = 0.25f * PI;
+
+inline float rad2deg(float rad) { return 180.0f * rad / PI; }
+inline float deg2rad(float deg) { return deg / 180.0f * PI; }
 
 struct Vec3 {
   float x;
