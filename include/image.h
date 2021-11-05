@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "core.h"
+
 class Image {
  private:
   unsigned int width;
