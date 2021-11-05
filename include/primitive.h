@@ -86,7 +86,11 @@ class Primitive {
       : shape(shape), material(material) {}
 
   bool intersect(const Ray& ray, IntersectInfo& info) const {
-    return shape->intersect(ray, info);
+    if (shape->intersect(ray, info)) {
+      info.hitPrimitive = this;
+      return true;
+    }
+    return false;
   }
 
   Vec3 sampleBRDF(const Vec3& wo, Vec3& wi, float& pdf);
