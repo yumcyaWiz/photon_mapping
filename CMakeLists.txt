@@ -3,11 +3,18 @@ project(photon_mapping LANGUAGES CXX)
 
 option(BUILD_TESTS "build tests" OFF)
 
+# spdlog
+if(NOT TARGET spdlog)
+    find_package(spdlog REQUIRED)
+endif()
+
 # pm(photon_mapping)
 add_library(pm INTERFACE)
 target_include_directories(pm INTERFACE "include")
 target_compile_features(pm INTERFACE cxx_std_20)
 set_target_properties(pm PROPERTIES CXX_EXTENSIONS OFF)
+
+target_link_libraries(pm INTERFACE spdlog::spdlog)
 
 # examples
 add_subdirectory("examples")

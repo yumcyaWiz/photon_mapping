@@ -20,7 +20,7 @@ struct Vec3 {
   float z;
 
   Vec3() { x = y = z = 0; }
-  Vec3(float x) { x = y = z = x; }
+  Vec3(float v) { x = y = z = v; }
   Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 };
 
@@ -79,6 +79,7 @@ struct Ray {
   static constexpr float tmin = 1e-3;
   mutable float tmax = std::numeric_limits<float>::max();
 
+  Ray() {}
   Ray(const Vec3& origin, const Vec3& direction)
       : origin(origin), direction(direction) {}
 
