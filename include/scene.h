@@ -37,7 +37,13 @@ class Scene {
   Intersector intersector;
 
  public:
-  Scene(const std::vector<Primitive>& primitives) : primitives(primitives) {
+  Scene() {}
+
+  void addPrimitive(const Primitive& primitive) {
+    primitives.push_back(primitive);
+  }
+
+  void build() {
     intersector.setPrimitives(
         std::make_shared<std::vector<Primitive>>(this->primitives));
   }
