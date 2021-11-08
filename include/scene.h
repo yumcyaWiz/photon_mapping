@@ -9,19 +9,21 @@
 // linear intersector
 class Intersector {
  private:
-  std::shared_ptr<std::vector<Primitive>> primitives;
+  const Primitive* primitives;
+  unsigned int nPrimitives;
 
  public:
   Intersector() {}
 
-  void setPrimitives(
-      const std::shared_ptr<std::vector<Primitive>>& primitives) {
-    this->primitives = primitives;
+  void setPrimitives(const std::vector<Primitive>& primitives) {
+    this->primitives = primitives.data();
+    this->nPrimitives = primitives.size();
   }
 
   bool intersect(const Ray& ray, IntersectInfo& info) const {
     bool hit = false;
-    for (const auto& p : *primitives) {
+    for (unsigned int i = 0; i < nPrimitives; ++i) {
+      const Primitive& p = primitives[i];
       if (p.intersect(ray, info)) {
         hit = true;
         ray.tmax = info.t;
@@ -43,10 +45,7 @@ class Scene {
     primitives.push_back(primitive);
   }
 
-  void build() {
-    intersector.setPrimitives(
-        std::make_shared<std::vector<Primitive>>(this->primitives));
-  }
+  void build() { intersector.setPrimitives(primitives); }
 
   bool intersect(const Ray& ray, IntersectInfo& info) {
     return intersector.intersect(ray, info);
