@@ -76,7 +76,7 @@ inline Vec3 normalize(const Vec3& v) { return v / length(v); }
 struct Ray {
   Vec3 origin;
   Vec3 direction;
-  static constexpr float tmin = 1e-3;
+  static constexpr float tmin = 1e-5;
   mutable float tmax = std::numeric_limits<float>::max();
 
   Ray() {}
