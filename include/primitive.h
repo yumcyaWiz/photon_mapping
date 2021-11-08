@@ -77,8 +77,8 @@ class Plane : public Shape {
 
 class Primitive {
  private:
-  std::shared_ptr<Shape> shape;
-  std::shared_ptr<Material> material;
+  const std::shared_ptr<Shape> shape;
+  const std::shared_ptr<Material> material;
 
  public:
   Primitive(const std::shared_ptr<Shape>& shape,
@@ -93,7 +93,7 @@ class Primitive {
     return false;
   }
 
-  Vec3 sampleBRDF(const Vec3& wo, Vec3& wi, float& pdf);
+  Vec3 sampleBRDF(const Vec3& wo, Vec3& wi, float& pdf) const;
 };
 
 #endif
