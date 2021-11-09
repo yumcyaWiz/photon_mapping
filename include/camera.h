@@ -23,12 +23,12 @@ class Camera {
     right = normalize(cross(forward, Vec3(0, 1, 0)));
     up = normalize(cross(right, forward));
 
-    spdlog::info("[Camera] position: ({}, {}, {})", position.x, position.y,
-                 position.z);
-    spdlog::info("[Camera] forward: ({}, {}, {})", forward.x, forward.y,
-                 forward.z);
-    spdlog::info("[Camera] right: ({}, {}, {})", right.x, right.y, right.z);
-    spdlog::info("[Camera] up: ({}, {}, {})", up.x, up.y, up.z);
+    spdlog::info("[Camera] position: ({}, {}, {})", position[0], position[1],
+                 position[2]);
+    spdlog::info("[Camera] forward: ({}, {}, {})", forward[0], forward[1],
+                 forward[2]);
+    spdlog::info("[Camera] right: ({}, {}, {})", right[0], right[1], right[2]);
+    spdlog::info("[Camera] up: ({}, {}, {})", up[0], up[1], up[2]);
 
     // compute focal length from FOV
     focal_length = 1.0f / std::tan(deg2rad(0.5f * FOV));

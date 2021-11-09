@@ -26,9 +26,9 @@ class Image {
 
   void setPixel(unsigned int i, unsigned int j, const Vec3& rgb) {
     const unsigned int idx = 3 * j + 3 * width * i;
-    pixels[idx] = rgb.x;
-    pixels[idx + 1] = rgb.y;
-    pixels[idx + 2] = rgb.z;
+    pixels[idx] = rgb[0];
+    pixels[idx + 1] = rgb[1];
+    pixels[idx + 2] = rgb[2];
   }
 
   void writePPM(const std::string& filename) {
@@ -42,11 +42,11 @@ class Image {
       for (unsigned int j = 0; j < width; ++j) {
         const Vec3 rgb = getPixel(i, j);
         const unsigned int R =
-            std::clamp(static_cast<unsigned int>(255.0f * rgb.x), 0u, 255u);
+            std::clamp(static_cast<unsigned int>(255.0f * rgb[0]), 0u, 255u);
         const unsigned int G =
-            std::clamp(static_cast<unsigned int>(255.0f * rgb.y), 0u, 255u);
+            std::clamp(static_cast<unsigned int>(255.0f * rgb[1]), 0u, 255u);
         const unsigned int B =
-            std::clamp(static_cast<unsigned int>(255.0f * rgb.z), 0u, 255u);
+            std::clamp(static_cast<unsigned int>(255.0f * rgb[2]), 0u, 255u);
         file << R << " " << G << " " << B << std::endl;
       }
     }
