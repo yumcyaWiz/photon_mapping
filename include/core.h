@@ -116,6 +116,8 @@ struct Ray {
 struct SurfaceInfo {
   Vec3 position;
   Vec3 normal;
+  Vec3 dpdu;
+  Vec3 dpdv;
 };
 
 // forward declaration

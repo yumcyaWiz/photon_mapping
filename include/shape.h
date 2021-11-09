@@ -1,5 +1,7 @@
 #ifndef _SHAPE_H
 #define _SHAPE_H
+#include <algorithm>
+#include <cmath>
 
 #include "core.h"
 #include "sampler.h"
@@ -19,6 +21,7 @@ class Sphere : public Shape {
   Sphere(const Vec3& center, float radius) : center(center), radius(radius) {}
 
   bool intersect(const Ray& ray, IntersectInfo& info) const override {
+    // solve quadratic equation
     const float b = dot(ray.origin - center, ray.direction);
     const float c = length2(ray.origin - center) - radius * radius;
     const float D = b * b - c;
@@ -34,7 +37,19 @@ class Sphere : public Shape {
 
     info.t = t;
     info.surfaceInfo.position = ray(t);
-    info.surfaceInfo.normal = normalize(info.surfaceInfo.position - center);
+    const Vec3 r = info.surfaceInfo.position - center;
+    info.surfaceInfo.normal = normalize(r);
+
+    // compute local coordinate(phi, theta) of hit position
+    float phi = std::atan2(r[2], r[0]);
+    if (phi < 0) phi += PI_MUL_2;
+    const float theta = std::acos(std::clamp(r[1] / radius, -1.0f, 1.0f));
+
+    // compute dpdu, dpdv
+    info.surfaceInfo.dpdu = normalize(Vec3(-r[2], 0, r[0]));
+    info.surfaceInfo.dpdv = normalize(Vec3(
+        std::cos(phi) * r[1], -radius * std::sin(theta), std::sin(phi) * r[1]));
+
     return true;
   }
 
@@ -44,6 +59,18 @@ class Sphere : public Shape {
     ret.position = center + radius * p;
     ret.normal = p;
     pdf /= (radius * radius);
+
+    // compute local coordinate(phi, theta) of hit position
+    const Vec3 r = ret.position - center;
+    float phi = std::atan2(r[2], r[0]);
+    if (phi < 0) phi += PI_MUL_2;
+    const float theta = std::acos(std::clamp(r[1] / radius, -1.0f, 1.0f));
+
+    // compute dpdu, dpdv
+    ret.dpdu = normalize(Vec3(-r[2], 0, r[0]));
+    ret.dpdv = normalize(Vec3(std::cos(phi) * r[1], -radius * std::sin(theta),
+                              std::sin(phi) * r[1]));
+
     return ret;
   }
 };
@@ -84,6 +111,8 @@ class Plane : public Shape {
     info.t = t;
     info.surfaceInfo.position = hitPos;
     info.surfaceInfo.normal = normal;
+    info.surfaceInfo.dpdu = rightDir;
+    info.surfaceInfo.dpdv = upDir;
     return true;
   }
 
@@ -92,6 +121,8 @@ class Plane : public Shape {
     const Vec2 p = samplePlane(sampler.getNext2D(), rightLength, upLength, pdf);
     ret.position = leftCornerPoint + p[0] * rightDir + p[1] * upDir;
     ret.normal = normal;
+    ret.dpdu = rightDir;
+    ret.dpdv = upDir;
     return ret;
   }
 };
