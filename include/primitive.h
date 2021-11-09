@@ -5,10 +5,12 @@
 
 #include "core.h"
 #include "material.h"
+#include "sampler.h"
 
 class Shape {
  public:
   virtual bool intersect(const Ray& ray, IntersectInfo& info) const = 0;
+  virtual SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const = 0;
 };
 
 class Sphere : public Shape {
@@ -38,26 +40,40 @@ class Sphere : public Shape {
     info.surfaceInfo.normal = normalize(info.surfaceInfo.position - center);
     return true;
   }
+
+  SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const override {
+    SurfaceInfo ret;
+    const Vec3 p = sampleSphere(sampler.getNext2D(), pdf);
+    ret.position = center + radius * p;
+    ret.normal = p;
+    pdf /= (radius * radius);
+    return ret;
+  }
 };
 
 class Plane : public Shape {
  private:
   const Vec3 leftCornerPoint;
-  const Vec3 right;
-  const Vec3 up;
+  Vec3 rightDir;
+  float rightLength;
+  Vec3 upDir;
+  float upLength;
+  Vec3 center;
+  Vec3 normal;
 
  public:
   Plane(const Vec3& leftCornerPoint, const Vec3& right, const Vec3& up)
-      : leftCornerPoint(leftCornerPoint), right(right), up(up) {}
+      : leftCornerPoint(leftCornerPoint) {
+    rightDir = normalize(right);
+    rightLength = length(right);
+    upDir = normalize(up);
+    upLength = length(up);
+    center = leftCornerPoint + 0.5f * rightLength * rightDir +
+             0.5f * upLength * upDir;
+    normal = normalize(cross(rightDir, upDir));
+  }
 
   bool intersect(const Ray& ray, IntersectInfo& info) const override {
-    const Vec3 normal = normalize(cross(right, up));
-    const Vec3 center = leftCornerPoint + 0.5f * right + 0.5f * up;
-    const Vec3 rightDir = normalize(right);
-    const float rightLength = length(right);
-    const Vec3 upDir = normalize(up);
-    const float upLength = length(up);
-
     const float t =
         -dot(ray.origin - center, normal) / dot(ray.direction, normal);
     if (t < ray.tmin || t > ray.tmax) return false;
@@ -72,6 +88,14 @@ class Plane : public Shape {
     info.surfaceInfo.position = hitPos;
     info.surfaceInfo.normal = normal;
     return true;
+  }
+
+  SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const override {
+    SurfaceInfo ret;
+    const Vec2 p = samplePlane(sampler.getNext2D(), rightLength, upLength, pdf);
+    ret.position = leftCornerPoint + p[0] * rightDir + p[1] * upDir;
+    ret.normal = normal;
+    return ret;
   }
 };
 

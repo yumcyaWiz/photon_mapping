@@ -93,4 +93,9 @@ inline Vec3 sampleSphere(const Vec2& uv, float& pdf) {
   return sphericalToCartesian(theta, phi);
 }
 
+inline Vec2 samplePlane(const Vec2& uv, float lx, float ly, float& pdf) {
+  pdf = 1.0f / (lx * ly);
+  return Vec2(uv[0] * lx, uv[1] * ly);
+}
+
 #endif
