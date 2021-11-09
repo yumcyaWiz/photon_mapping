@@ -36,6 +36,7 @@ class Intersector {
 class Scene {
  private:
   std::vector<Primitive> primitives;
+  std::vector<std::shared_ptr<Light>> lights;
   Intersector intersector;
 
  public:
@@ -45,7 +46,19 @@ class Scene {
     primitives.push_back(primitive);
   }
 
-  void build() { intersector.setPrimitives(primitives); }
+  void build() {
+    // build intersector
+    intersector.setPrimitives(primitives);
+
+    // populate lights
+    for (const auto& primitive : primitives) {
+      if (primitive.hasAreaLight()) {
+        lights.push_back(primitive.getAreaLightPtr());
+      }
+    }
+
+    spdlog::info("[Scene] number of lights: {}", lights.size());
+  }
 
   bool intersect(const Ray& ray, IntersectInfo& info) {
     return intersector.intersect(ray, info);
