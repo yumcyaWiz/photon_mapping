@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "core.h"
 #include "image.h"
+#include "integrator.h"
 #include "light.h"
 #include "material.h"
 #include "primitive.h"
