@@ -36,9 +36,9 @@ class Camera {
     spdlog::info("[Camera] focal_length: {}", focal_length);
   }
 
-  bool sampleRay(float u, float v, Ray& ray, float& pdf) const {
+  bool sampleRay(const Vec2& uv, Ray& ray, float& pdf) const {
     const Vec3 pinholePos = position + focal_length * forward;
-    const Vec3 sensorPos = position + u * right + v * up;
+    const Vec3 sensorPos = position + uv[0] * right + uv[1] * up;
     ray = Ray(sensorPos, normalize(pinholePos - sensorPos));
     pdf = 1.0f;
     return true;

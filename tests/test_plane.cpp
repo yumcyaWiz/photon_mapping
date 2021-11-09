@@ -20,7 +20,7 @@ int main() {
 
       Ray ray;
       float pdf;
-      if (camera.sampleRay(u, v, ray, pdf)) {
+      if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
         IntersectInfo info;
         if (plane.intersect(ray, info)) {
           image.setPixel(i, j, 0.5f * (info.surfaceInfo.normal + 1.0f));
