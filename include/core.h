@@ -5,6 +5,8 @@
 #include <limits>
 
 constexpr float PI = 3.14159265359;
+constexpr float PI_INV = 1.0f / PI;
+
 constexpr float PI_MUL_2 = 2.0f * PI;
 constexpr float PI_MUL_4 = 4.0f * PI;
 
@@ -76,6 +78,11 @@ inline Vec3 cross(const Vec3& v1, const Vec3& v2) {
 inline float length(const Vec3& v) { return std::sqrt(dot(v, v)); }
 inline float length2(const Vec3& v) { return dot(v, v); }
 inline Vec3 normalize(const Vec3& v) { return v / length(v); }
+
+inline Vec3 sphericalToCartesian(float phi, float theta) {
+  return Vec3(std::cos(phi) * std::sin(theta), std::cos(theta),
+              std::sin(phi) * std::sin(theta));
+}
 
 struct Ray {
   Vec3 origin;
