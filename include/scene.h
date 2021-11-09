@@ -63,6 +63,13 @@ class Scene {
   bool intersect(const Ray& ray, IntersectInfo& info) {
     return intersector.intersect(ray, info);
   }
+
+  std::shared_ptr<Light> sampleLight(Sampler& sampler, float& pdf) const {
+    unsigned int lightIdx = lights.size() * sampler.getNext1D();
+    if (lightIdx == lights.size()) lightIdx--;
+    pdf = 1.0f / lights.size();
+    return lights[lightIdx];
+  }
 };
 
 #endif
