@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 
+#include "light.h"
 #include "material.h"
 #include "shape.h"
 
@@ -10,11 +11,13 @@ class Primitive {
  private:
   const std::shared_ptr<Shape> shape;
   const std::shared_ptr<Material> material;
+  const std::shared_ptr<AreaLight> areaLight;
 
  public:
   Primitive(const std::shared_ptr<Shape>& shape,
-            const std::shared_ptr<Material>& material)
-      : shape(shape), material(material) {}
+            const std::shared_ptr<Material>& material,
+            const std::shared_ptr<AreaLight>& areaLight = nullptr)
+      : shape(shape), material(material), areaLight(areaLight) {}
 
   bool intersect(const Ray& ray, IntersectInfo& info) const {
     if (shape->intersect(ray, info)) {

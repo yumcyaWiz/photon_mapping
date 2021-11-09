@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "core.h"
-#include "primitive.h"
 #include "sampler.h"
 #include "shape.h"
 
