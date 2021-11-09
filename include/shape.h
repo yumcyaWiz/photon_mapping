@@ -37,6 +37,7 @@ class Sphere : public Shape {
 
     info.t = t;
     info.surfaceInfo.position = ray(t);
+
     const Vec3 r = info.surfaceInfo.position - center;
     info.surfaceInfo.normal = normalize(r);
 
