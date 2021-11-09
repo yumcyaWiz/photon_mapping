@@ -1,5 +1,6 @@
 #ifndef _PHOTON_MAP_H
 #define _PHOTON_MAP_H
+#include <concepts>
 #include <numeric>
 #include <queue>
 #include <vector>
@@ -11,14 +12,18 @@ struct Photon {
   Vec3 position;
   Vec3 wi;
 
+  // implement Point
+  static constexpr int dim = 3;
+  float operator[](int i) const { return position[i]; }
+
   Photon(const Vec3& flux, const Vec3& position, const Vec3& wi)
       : flux(flux), position(position), wi(wi) {}
 };
 
 template <typename T>
 concept Point = requires(T& x, int i) {
-  typename T::dim;  // dimension
-  x[i];
+  { T::dim } -> std::convertible_to<int>;  // dimension
+  { x[i] } -> std::convertible_to<float>;  // element access
 };
 
 template <typename PointT>
@@ -127,8 +132,12 @@ class KdTree {
   }
 
  public:
-  KdTree(const PointT* points, int nPoints)
-      : points(points), nPoints(nPoints) {}
+  KdTree() {}
+
+  void setPoints(const PointT* points, int nPoints) {
+    this->points = points;
+    this->nPoints = nPoints;
+  }
 
   void buildTree() {
     // setup indices of points
@@ -136,7 +145,7 @@ class KdTree {
     std::iota(indices.begin(), indices.end(), 0);
 
     // build tree recursively
-    buildNode(indices.data(), points.size(), 0);
+    buildNode(indices.data(), nPoints, 0);
   }
 
   template <typename PointU>
@@ -160,6 +169,17 @@ class KdTree {
 class PhotonMap {
  private:
   std::vector<Photon> photons;
+  KdTree<Photon> kdtree;
+
+ public:
+  PhotonMap() {}
+
+  void addPhoton(const Photon& photon) { photons.push_back(photon); }
+
+  void build() {
+    kdtree.setPoints(photons.data(), photons.size());
+    kdtree.buildTree();
+  }
 };
 
 #endif
