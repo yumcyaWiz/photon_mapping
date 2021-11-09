@@ -30,6 +30,7 @@ struct Vec2 {
   }
 
   float operator[](int i) const { return v[i]; }
+  float& operator[](int i) { return v[i]; }
 };
 
 struct Vec3 {
@@ -44,6 +45,7 @@ struct Vec3 {
   }
 
   float operator[](int i) const { return v[i]; }
+  float& operator[](int i) { return v[i]; }
 };
 
 inline Vec3 operator+(const Vec3& v1, const Vec3& v2) {
@@ -94,6 +96,20 @@ inline Vec3 cross(const Vec3& v1, const Vec3& v2) {
 inline float length(const Vec3& v) { return std::sqrt(dot(v, v)); }
 inline float length2(const Vec3& v) { return dot(v, v); }
 inline Vec3 normalize(const Vec3& v) { return v / length(v); }
+
+inline Vec3 worldToLocal(const Vec3& v, const Vec3& lx, const Vec3& ly,
+                         const Vec3& lz) {
+  return Vec3(dot(v, lx), dot(v, ly), dot(v, lz));
+}
+
+inline Vec3 localToWorld(const Vec3& v, const Vec3& lx, const Vec3& ly,
+                         const Vec3& lz) {
+  Vec3 ret;
+  for (int i = 0; i < 3; ++i) {
+    ret[i] = v[0] * lx[i] + v[1] * ly[i] + v[2] * lz[i];
+  }
+  return ret;
+}
 
 inline Vec3 sphericalToCartesian(float phi, float theta) {
   return Vec3(std::cos(phi) * std::sin(theta), std::cos(theta),
