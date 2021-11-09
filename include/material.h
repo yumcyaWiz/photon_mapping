@@ -4,6 +4,7 @@
 #include "sampler.h"
 
 class Material {
+ public:
   virtual Vec3 BRDF(const Vec3& wo, const Vec3& wi) const = 0;
   virtual Vec3 sampleBRDF(const Vec3& wo, Sampler& sampler, Vec3& wi,
                           float& pdf) const;
@@ -13,6 +14,7 @@ class Diffuse : public Material {
  private:
   Vec3 rho;
 
+ public:
   Diffuse(const Vec3& rho) : rho(rho) {}
 
   Vec3 BRDF(const Vec3& wo, const Vec3& wi) const { return rho / PI; }
