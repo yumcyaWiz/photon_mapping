@@ -90,13 +90,17 @@ struct Ray {
   Vec3 operator()(float t) const { return origin + t * direction; }
 };
 
+struct SurfaceInfo {
+  Vec3 position;
+  Vec3 normal;
+};
+
 // forward declaration
 class Primitive;
 
 struct IntersectInfo {
   float t;
-  Vec3 hitPos;
-  Vec3 hitNormal;
+  SurfaceInfo surfaceInfo;
   const Primitive* hitPrimitive;
 };
 

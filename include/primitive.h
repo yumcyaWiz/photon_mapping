@@ -34,8 +34,8 @@ class Sphere : public Shape {
     }
 
     info.t = t;
-    info.hitPos = ray(t);
-    info.hitNormal = normalize(info.hitPos - center);
+    info.surfaceInfo.position = ray(t);
+    info.surfaceInfo.normal = normalize(info.surfaceInfo.position - center);
     return true;
   }
 };
@@ -69,8 +69,8 @@ class Plane : public Shape {
       return false;
 
     info.t = t;
-    info.hitPos = hitPos;
-    info.hitNormal = normal;
+    info.surfaceInfo.position = hitPos;
+    info.surfaceInfo.normal = normal;
     return true;
   }
 };

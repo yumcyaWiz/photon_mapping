@@ -22,7 +22,7 @@ int main() {
       if (camera.sampleRay(u, v, ray, pdf)) {
         IntersectInfo info;
         if (sphere.intersect(ray, info)) {
-          image.setPixel(i, j, 0.5f * (info.hitNormal + 1.0f));
+          image.setPixel(i, j, 0.5f * (info.surfaceInfo.normal + 1.0f));
         }
       } else {
         image.setPixel(i, j, Vec3(0));
