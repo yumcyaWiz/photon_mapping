@@ -3,6 +3,7 @@
 #include "image.h"
 #include "material.h"
 #include "primitive.h"
+#include "sampler.h"
 #include "scene.h"
 
 int main() {
