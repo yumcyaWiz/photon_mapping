@@ -16,6 +16,7 @@ struct Photon {
   static constexpr int dim = 3;
   float operator[](int i) const { return position[i]; }
 
+  Photon() {}
   Photon(const Vec3& flux, const Vec3& position, const Vec3& wi)
       : flux(flux), position(position), wi(wi) {}
 };
@@ -174,7 +175,9 @@ class PhotonMap {
  public:
   PhotonMap() {}
 
-  void addPhoton(const Photon& photon) { photons.push_back(photon); }
+  void setPhotons(const std::vector<Photon>& photons) {
+    this->photons = photons;
+  }
 
   void build() {
     kdtree.setPoints(photons.data(), photons.size());
