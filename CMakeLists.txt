@@ -8,6 +8,12 @@ if(NOT TARGET spdlog)
     find_package(spdlog REQUIRED)
 endif()
 
+# OpenMP
+find_package(OpenMP)
+if(NOT OpenMP_CXX_FOUND)
+    message(WARNING "failed to find OpenMP")
+endif()
+
 # pm(photon_mapping)
 add_library(pm INTERFACE)
 target_include_directories(pm INTERFACE "include")

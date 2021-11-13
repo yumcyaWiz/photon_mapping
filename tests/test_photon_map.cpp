@@ -1,3 +1,5 @@
+#include <omp.h>
+
 #include "camera.h"
 #include "image.h"
 #include "integrator.h"
@@ -89,11 +91,11 @@ int main() {
   const PhotonMap* photon_map = integrator.getPhotonMapPtr();
   const Photon* photons_ptr = photon_map->getPhotonsPtr();
 
+#pragma omp parallel for schedule(dynamic, 1) collapse(2)
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       const float u = (2.0f * j - width) / height;
       const float v = (2.0f * i - height) / height;
-
       Ray ray;
       float pdf;
       if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
