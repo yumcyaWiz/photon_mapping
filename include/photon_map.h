@@ -209,7 +209,7 @@ class PhotonMap {
 
   std::vector<int> queryKNearestPhotons(const Vec3& p, int k,
                                         float& max_dist2) const {
-    return kdtree.searchKNearest(p, 1, max_dist2);
+    return kdtree.searchKNearest(p, k, max_dist2);
   }
 };
 
