@@ -11,8 +11,8 @@ int main() {
   const int width = 512;
   const int height = 512;
   const int n_photons = 1000000;
-  const int n_density_estimation = 10;
-  const int n_samples = 8;
+  const int n_density_estimation = 100;
+  const int n_samples = 1;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);

@@ -121,7 +121,7 @@ class PhotonMapping : public Integrator {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           // if hitting diffuse surface, add photon to the photon array
-          BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
+          const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
           if (bxdf_type == BxDFType::DIFFUSE) {
             photons[i] =
                 Photon(throughput, info.surfaceInfo.position, -ray.direction);
@@ -141,7 +141,7 @@ class PhotonMapping : public Integrator {
           // sample direction by BxDF
           Vec3 dir;
           float pdf_dir;
-          Vec3 f = info.hitPrimitive->sampleBxDF(
+          const Vec3 f = info.hitPrimitive->sampleBxDF(
               -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
 
           // update throughput and ray
@@ -187,20 +187,20 @@ class PhotonMapping : public Integrator {
         // reflected radiance
         if (bxdf_type == BxDFType::DIFFUSE) {
           // get nearby photons
-          float r2;
+          float max_dist2;
           const std::vector<int> photon_indices =
               photonMap.queryKNearestPhotons(info.surfaceInfo.position,
-                                             nDensityEstimation, r2);
+                                             nDensityEstimation, max_dist2);
 
           // compute reflected radiance with simple kernel
           Vec3 Lo;
-          for (int photon_idx : photon_indices) {
+          for (const int photon_idx : photon_indices) {
             const Photon& photon = photonMap.getIthPhoton(photon_idx);
             const Vec3 f = info.hitPrimitive->evaluateBxDF(
                 -ray.direction, photon.wi, info.surfaceInfo);
             Lo += f * photon.throughput;
           }
-          Lo /= (photonMap.getNPhotons() * PI * r2);
+          Lo /= (nPhotons * PI * max_dist2);
 
           return throughput * Lo;
         }
@@ -209,7 +209,7 @@ class PhotonMapping : public Integrator {
           // sample direction by BxDF
           Vec3 dir;
           float pdf_dir;
-          Vec3 f = info.hitPrimitive->sampleBxDF(
+          const Vec3 f = info.hitPrimitive->sampleBxDF(
               -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
 
           // update throughput and ray
