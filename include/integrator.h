@@ -38,6 +38,7 @@ class PhotonMapping : public Integrator {
 
     // photon tracing
     spdlog::info("[PhotonMapping] tracing photons");
+#pragma omp parallel for schedule(dynamic, 1)
     for (int i = 0; i < nPhotons; ++i) {
       // sample light
       float light_choose_pdf;
