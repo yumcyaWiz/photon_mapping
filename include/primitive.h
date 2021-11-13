@@ -39,7 +39,7 @@ class Primitive {
   BxDFType getBxDFType() const { return bxdf->getType(); }
 
   Vec3 evaluateBxDF(const Vec3& wo, const Vec3& wi,
-                    const SurfaceInfo& surfInfo) {
+                    const SurfaceInfo& surfInfo) const {
     // world to local transform
     const Vec3 wo_l =
         worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);

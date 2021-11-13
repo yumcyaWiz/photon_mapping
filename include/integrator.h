@@ -87,7 +87,7 @@ class PhotonMapping : public Integrator {
           // sample direction by BxDF
           Vec3 dir;
           float pdf_dir;
-          Vec3 f = info.hitPrimitive->sampleBRDF(
+          Vec3 f = info.hitPrimitive->sampleBxDF(
               -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
 
           // update throughput and ray
@@ -130,13 +130,29 @@ class PhotonMapping : public Integrator {
         const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
         if (bxdf_type == BxDFType::DIFFUSE) {
           // get nearby photons
+          float r2;
+          const std::vector<int> photon_indices =
+              photonMap.queryKNearestPhotons(info.surfaceInfo.position,
+                                             nDensityEstimation, r2);
+
+          // compute reflected radiance
+          Vec3 Lo;
+          for (int photon_idx : photon_indices) {
+            const Photon& photon = photonMap.getIthPhoton(photon_idx);
+            const Vec3 f = info.hitPrimitive->evaluateBxDF(
+                -ray.direction, photon.wi, info.surfaceInfo);
+            Lo += f * photon.throughput;
+          }
+          Lo /= (photon_indices.size() * PI * r2);
+
+          return throughput * Lo;
         }
         // generate next ray
         else if (bxdf_type == BxDFType::SPECULAR) {
           // sample direction by BxDF
           Vec3 dir;
           float pdf_dir;
-          Vec3 f = info.hitPrimitive->sampleBRDF(
+          Vec3 f = info.hitPrimitive->sampleBxDF(
               -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
 
           // update throughput and ray
