@@ -36,6 +36,9 @@ struct Vec2 {
 struct Vec3 {
   float v[3];
 
+  // implement Point
+  static constexpr int dim = 3;
+
   Vec3() { v[0] = v[1] = v[2] = 0; }
   Vec3(float x) { v[0] = v[1] = v[2] = x; }
   Vec3(float x, float y, float z) {

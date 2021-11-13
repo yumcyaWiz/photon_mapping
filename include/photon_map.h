@@ -27,6 +27,18 @@ concept Point = requires(T& x, int i) {
   { x[i] } -> std::convertible_to<float>;  // element access
 };
 
+// compute squared distance between given points
+// NOTE: assume PointT and PointU has the same dimension
+template <typename PointT, typename PointU>
+requires Point<PointT> && Point<PointU>
+inline float distance2(const PointT& p1, const PointU& p2) {
+  float dist2 = 0;
+  for (int i = 0; i < PointT::dim; ++i) {
+    dist2 += (p1[i] - p2[i]) * (p1[i] - p2[i]);
+  }
+  return dist2;
+}
+
 template <typename PointT>
 requires Point<PointT>
 class KdTree {
@@ -182,6 +194,10 @@ class PhotonMap {
   void build() {
     kdtree.setPoints(photons.data(), photons.size());
     kdtree.buildTree();
+  }
+
+  void queryPhotons(const Vec3& p, int n_photons, float& max_dist2) const {
+    kdtree.searchKNearest(p, n_photons, max_dist2);
   }
 };
 
