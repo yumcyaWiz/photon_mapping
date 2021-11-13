@@ -52,16 +52,22 @@ struct Vec3 {
 
   Vec3 operator-() const { return Vec3(-v[0], -v[1], -v[2]); }
 
+  Vec3& operator+=(const Vec3& v) {
+    for (int i = 0; i < 3; ++i) {
+      this->v[i] += v[i];
+    }
+    return *this;
+  }
   Vec3& operator*=(const Vec3& v) {
-    this->v[0] *= v[0];
-    this->v[1] *= v[1];
-    this->v[2] *= v[2];
+    for (int i = 0; i < 3; ++i) {
+      this->v[i] *= v[i];
+    }
     return *this;
   }
   Vec3& operator/=(const Vec3& v) {
-    this->v[0] /= v[0];
-    this->v[1] /= v[1];
-    this->v[2] /= v[2];
+    for (int i = 0; i < 3; ++i) {
+      this->v[i] /= v[i];
+    }
     return *this;
   }
 };
