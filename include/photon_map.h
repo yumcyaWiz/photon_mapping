@@ -191,11 +191,13 @@ class PhotonMap {
   const int getNPhotons() const { return photons.size(); }
   const Photon* getPhotonsPtr() const { return photons.data(); }
 
+  void addPhoton(const Photon& photon) { photons.push_back(photon); }
   void setPhotons(const std::vector<Photon>& photons) {
     this->photons = photons;
   }
 
   void build() {
+    spdlog::info("[PhotonMap] photons: {}", photons.size());
     kdtree.setPoints(photons.data(), photons.size());
     kdtree.buildTree();
   }

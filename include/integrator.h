@@ -1,5 +1,7 @@
 #ifndef _INTEGRATOR_H
 #define _INTEGRATOR_H
+#include <optional>
+
 #include "core.h"
 #include "photon_map.h"
 #include "scene.h"
@@ -29,7 +31,8 @@ class PhotonMapping : public Integrator {
   const PhotonMap* getPhotonMapPtr() const { return &photon_map; }
 
   void build(const Scene& scene, Sampler& sampler) override {
-    std::vector<Photon> photons(nPhotons);
+    // NOTE: to parallelize photon tracing, prepare array of std::option<Photon>
+    std::vector<std::optional<Photon>> photons(nPhotons);
 
     // photon tracing
     spdlog::info("[PhotonMapping] tracing photons");
@@ -48,6 +51,9 @@ class PhotonMapping : public Integrator {
       const Vec3 light_dir =
           light->sampleDirection(light_surf, sampler, light_dir_pdf);
 
+      spdlog::info("{}, {}, {}", light_surf.normal[0], light_surf.normal[1],
+                   light_surf.normal[2]);
+
       // spawn ray
       Ray ray(light_surf.position, light_dir_pdf);
       Vec3 throughput = light->Le(light_surf, light_dir) /
@@ -57,14 +63,14 @@ class PhotonMapping : public Integrator {
       // trace photons
       // whener hitting diffuse surface, add photon to the photon array
       // recursively tracing photon with russian roulette
-      for (int k = 0; k < maxDepth; ++k) {
+      for (int k = 0; k < 1; ++k) {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           // if hitting diffuse surface, add photon to the photon array
           BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
           if (bxdf_type == BxDFType::DIFFUSE) {
-            photons.emplace_back(throughput, info.surfaceInfo.position,
-                                 -ray.direction);
+            photons[i] =
+                Photon(throughput, info.surfaceInfo.position, -ray.direction);
           }
 
           // russian roulette
@@ -95,9 +101,15 @@ class PhotonMapping : public Integrator {
       }
     }
 
+    // add photon to the photon map
+    for (const auto& p : photons) {
+      if (p) {
+        photon_map.addPhoton(p.value());
+      }
+    }
+
     // build photon map
     spdlog::info("[PhotonMapping] building photon map");
-    photon_map.setPhotons(photons);
     photon_map.build();
   }
 
