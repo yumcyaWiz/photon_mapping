@@ -15,7 +15,7 @@ class Integrator {
 };
 
 // implementation of photon mapping
-class PM : public Integrator {
+class PhotonMapping : public Integrator {
  private:
   const int n_photons;
   const int n_density_estimation;
@@ -23,14 +23,17 @@ class PM : public Integrator {
   PhotonMap photon_map;
 
  public:
-  PM(int nPhotons, int nDensityEstimation)
+  PhotonMapping(int nPhotons, int nDensityEstimation)
       : n_photons(nPhotons), n_density_estimation(nDensityEstimation) {}
+
+  const PhotonMap* getPhotonMapPtr() const { return &photon_map; }
 
   void build(const Scene& scene, Sampler& sampler) override {
     // TODO: trace photons, build photon map
     std::vector<Photon> photons(n_photons);
 
     // photon tracing
+    spdlog::info("[PhotonMapping] tracing photons");
     for (int i = 0; i < n_photons; ++i) {
       // sample light
       float light_choose_pdf;
@@ -90,6 +93,7 @@ class PM : public Integrator {
     }
 
     // build photon map
+    spdlog::info("[PhotonMapping] building photon map");
     photon_map.setPhotons(photons);
     photon_map.build();
   }
