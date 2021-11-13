@@ -36,13 +36,15 @@ class PathTracing : public Integrator {
       IntersectInfo info;
       if (scene.intersect(ray, info)) {
         // russian roulette
-        const float russian_roulette_prob = std::min(
-            std::max(throughput[0], std::max(throughput[1], throughput[2])),
-            1.0f);
-        if (k > 0 && sampler.getNext1D() >= russian_roulette_prob) {
-          break;
+        if (k > 0) {
+          const float russian_roulette_prob = std::min(
+              std::max(throughput[0], std::max(throughput[1], throughput[2])),
+              1.0f);
+          if (sampler.getNext1D() >= russian_roulette_prob) {
+            break;
+          }
+          throughput /= russian_roulette_prob;
         }
-        throughput /= russian_roulette_prob;
 
         // Le
         if (info.hitPrimitive->hasAreaLight()) {
