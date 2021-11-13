@@ -80,16 +80,15 @@ int main() {
   scene.addPrimitive(Primitive(light_shape, white, light));
   scene.build();
 
-  UniformSampler sampler;
-  sampler.setSeed(100);
-
   // photon tracing and build photon map
   PathTracing integrator(max_depth);
-  integrator.build(scene, sampler);
 
 #pragma omp parallel for schedule(dynamic, 1) collapse(2)
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
+      // init sampler
+      UniformSampler sampler(j + width * i);
+
       for (int k = 0; k < n_samples; ++k) {
         const float u = (2.0f * (j + sampler.getNext1D()) - width) / height;
         const float v = (2.0f * (i + sampler.getNext1D()) - height) / height;
