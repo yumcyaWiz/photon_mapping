@@ -10,9 +10,9 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_photons = 100;
-  const int n_density_estimation = 10;
-  const int n_samples = 1;
+  const int n_photons = 1000000;
+  const int n_density_estimation = 1;
+  const int n_samples = 8;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);
@@ -88,7 +88,7 @@ int main() {
   integrator.build(scene, sampler);
 
   spdlog::info("[main] tracing rays from camera");
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       // init sampler

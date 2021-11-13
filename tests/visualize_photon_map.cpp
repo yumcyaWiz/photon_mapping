@@ -80,10 +80,9 @@ int main() {
   scene.addPrimitive(Primitive(light_shape, white, light));
   scene.build();
 
-  UniformSampler sampler;
-
   // photon tracing and build photon map
   PhotonMapping integrator(n_photons, 1, max_depth);
+  UniformSampler sampler;
   integrator.build(scene, sampler);
 
   // visualize photon map
@@ -91,7 +90,7 @@ int main() {
 
   const PhotonMap* photon_map = integrator.getPhotonMapPtr();
 
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
+#pragma omp parallel for collapse(2)
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       const float u = (2.0f * j - width) / height;
@@ -108,7 +107,7 @@ int main() {
 
           // if distance to the photon is small enough, write photon's
           // throughput to the image
-          if (r2 < 0.0001f) {
+          if (r2 < 0.001f) {
             const Photon& photon = photon_map->getIthPhoton(photon_idx);
             image.setPixel(i, j, photon.throughput);
           }

@@ -10,7 +10,7 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_samples = 100;
+  const int n_samples = 10000;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);
