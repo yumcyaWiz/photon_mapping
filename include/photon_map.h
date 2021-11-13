@@ -169,6 +169,7 @@ class KdTree {
     searchKNearestNode(0, queryPoint, k, queue);
 
     std::vector<int> ret(queue.size());
+    maxDist2 = 0;
     for (int i = 0; i < ret.size(); ++i) {
       const auto& p = queue.top();
       ret[i] = p.second;
@@ -187,6 +188,9 @@ class PhotonMap {
  public:
   PhotonMap() {}
 
+  const int getNPhotons() const { return photons.size(); }
+  const Photon* getPhotonsPtr() const { return photons.data(); }
+
   void setPhotons(const std::vector<Photon>& photons) {
     this->photons = photons;
   }
@@ -196,9 +200,12 @@ class PhotonMap {
     kdtree.buildTree();
   }
 
-  void queryPhotons(const Vec3& p, int n_photons, float& max_dist2) const {
-    kdtree.searchKNearest(p, n_photons, max_dist2);
+  int queryNearestPhoton(const Vec3& p, float& max_dist2) const {
+    std::vector<int> indices = kdtree.searchKNearest(p, 1, max_dist2);
+    return indices[0];
   }
+
+  void queryPhotons(const Vec3& p, int n_photons, float& max_dist2) const {}
 };
 
 #endif
