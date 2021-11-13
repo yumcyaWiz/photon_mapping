@@ -18,7 +18,7 @@ class BxDF {
 
   virtual Vec3 evaluate(const Vec3& wo, const Vec3& wi) const = 0;
   virtual Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
-                               float& pdf) const;
+                               float& pdf) const = 0;
 };
 
 class Lambert : public BxDF {
