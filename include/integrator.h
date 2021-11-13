@@ -16,12 +16,55 @@ class Integrator {
                          Sampler& sampler) const = 0;
 };
 
+// implementation of path tracing
+// for reference purpose
+class PathTracing : public Integrator {
+ private:
+  const int maxDepth;
+
+ public:
+  PathTracing(int maxDepth = 100) : maxDepth(maxDepth) {}
+
+  void build(const Scene& scene, Sampler& sampler) override {}
+
+  Vec3 integrate(const Ray& ray_in, const Scene& scene,
+                 Sampler& sampler) const override {
+    Ray ray = ray_in;
+    Vec3 throughput(1, 1, 1);
+
+    for (int k = 0; k < maxDepth; ++k) {
+      IntersectInfo info;
+      if (scene.intersect(ray, info)) {
+        // Le
+        if (info.hitPrimitive->hasAreaLight()) {
+          return throughput *
+                 info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
+        }
+
+        // sample direction by BxDF
+        Vec3 dir;
+        float pdf_dir;
+        Vec3 f = info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
+                                               sampler, dir, pdf_dir);
+
+        // update throughput and ray
+        throughput *= f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
+        ray = Ray(info.surfaceInfo.position, dir);
+      } else {
+        break;
+      }
+    }
+
+    return Vec3(0);
+  }
+};
+
 // implementation of photon mapping
 class PhotonMapping : public Integrator {
  private:
   const int nPhotons;
   const int nDensityEstimation;
-  const int maxDepth = 100;
+  const int maxDepth;
   PhotonMap photonMap;
 
  public:
@@ -95,7 +138,7 @@ class PhotonMapping : public Integrator {
               f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
           ray = Ray(info.surfaceInfo.position, dir);
         } else {
-          // photon goes out to the sky
+          // photon goes to the sky
           break;
         }
       }
@@ -128,12 +171,16 @@ class PhotonMapping : public Integrator {
         }
 
         const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
+
+        // if hitting diffuse surface, query nearby photons and compute
+        // reflected radiance
         if (bxdf_type == BxDFType::DIFFUSE) {
           // get nearby photons
           float r2;
           const std::vector<int> photon_indices =
               photonMap.queryKNearestPhotons(info.surfaceInfo.position,
                                              nDensityEstimation, r2);
+          const int Np = photon_indices.size();
 
           // compute reflected radiance
           Vec3 Lo;
@@ -143,7 +190,7 @@ class PhotonMapping : public Integrator {
                 -ray.direction, photon.wi, info.surfaceInfo);
             Lo += f * photon.throughput;
           }
-          Lo /= (photon_indices.size() * PI * r2);
+          Lo /= (Np * PI * r2);
 
           return throughput * Lo;
         }
@@ -159,11 +206,15 @@ class PhotonMapping : public Integrator {
           throughput *=
               f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
           ray = Ray(info.surfaceInfo.position, dir);
+        } else {
+          spdlog::error("[PhotonMapping] invalid BxDF type");
+          return Vec3(0);
         }
       } else {
         break;
       }
     }
+    return Vec3(0);
   }
 };
 
