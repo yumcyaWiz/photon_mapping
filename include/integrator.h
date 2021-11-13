@@ -109,7 +109,7 @@ class PhotonMapping : public Integrator {
       // spawn ray
       Ray ray(light_surf.position, dir);
       Vec3 throughput = light->Le(light_surf, dir) /
-                        (light_choose_pdf * light_pos_pdf) *
+                        (light_choose_pdf * light_pos_pdf * light_dir_pdf) *
                         std::abs(dot(dir, light_surf.normal));
 
       // trace photons
@@ -189,7 +189,6 @@ class PhotonMapping : public Integrator {
           const std::vector<int> photon_indices =
               photonMap.queryKNearestPhotons(info.surfaceInfo.position,
                                              nDensityEstimation, r2);
-          const int Np = photon_indices.size();
 
           // compute reflected radiance
           Vec3 Lo;
@@ -199,7 +198,7 @@ class PhotonMapping : public Integrator {
                 -ray.direction, photon.wi, info.surfaceInfo);
             Lo += f * photon.throughput;
           }
-          Lo /= (Np * PI * r2);
+          Lo /= (photonMap.getNPhotons() * PI * r2);
 
           return throughput * Lo;
         }
