@@ -190,7 +190,7 @@ class PhotonMapping : public Integrator {
               photonMap.queryKNearestPhotons(info.surfaceInfo.position,
                                              nDensityEstimation, r2);
 
-          // compute reflected radiance
+          // compute reflected radiance with simple kernel
           Vec3 Lo;
           for (int photon_idx : photon_indices) {
             const Photon& photon = photonMap.getIthPhoton(photon_idx);

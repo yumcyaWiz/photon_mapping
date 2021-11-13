@@ -11,6 +11,8 @@ int main() {
   const int width = 512;
   const int height = 512;
   const int n_photons = 1000000;
+  const int n_density_estimation = 10;
+  const int n_samples = 8;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);
@@ -80,27 +82,37 @@ int main() {
   scene.addPrimitive(Primitive(light_shape, white, light));
   scene.build();
 
-  UniformSampler sampler;
-
   // photon tracing and build photon map
-  PhotonMapping integrator(n_photons, 100, max_depth);
+  PhotonMapping integrator(n_photons, n_density_estimation, max_depth);
+  UniformSampler sampler;
   integrator.build(scene, sampler);
 
+  spdlog::info("[main] tracing rays from camera");
 #pragma omp parallel for schedule(dynamic, 1) collapse(2)
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
-      const float u = (2.0f * j - width) / height;
-      const float v = (2.0f * i - height) / height;
-      Ray ray;
-      float pdf;
-      if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
-        const Vec3 radiance = integrator.integrate(ray, scene, sampler) / pdf;
-        image.setPixel(i, j, radiance);
-      } else {
-        image.setPixel(i, j, Vec3(0));
+      // init sampler
+      UniformSampler sampler(j + width * i);
+
+      for (int k = 0; k < n_samples; ++k) {
+        const float u = (2.0f * (j + sampler.getNext1D()) - width) / height;
+        const float v = (2.0f * (i + sampler.getNext1D()) - height) / height;
+
+        Ray ray;
+        float pdf;
+        if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
+          const Vec3 radiance = integrator.integrate(ray, scene, sampler) / pdf;
+          image.addPixel(i, j, radiance);
+        } else {
+          image.setPixel(i, j, Vec3(0));
+        }
       }
     }
   }
 
+  // take average
+  image.divide(n_samples);
+
+  image.gammaCorrection(2.2f);
   image.writePPM("output.ppm");
 }
