@@ -87,7 +87,7 @@ int main() {
   integrator.build(scene, sampler);
 
   // visualize photon map
-  spdlog::info("[test_photon_map] Visualizing photon map");
+  spdlog::info("[main] visualizing photon map");
 
   const PhotonMap* photon_map = integrator.getPhotonMapPtr();
   const Photon* photons_ptr = photon_map->getPhotonsPtr();
