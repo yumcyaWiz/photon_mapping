@@ -10,8 +10,8 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_photons = 1000000;
-  const int n_density_estimation = 100;
+  const int n_photons = 100;
+  const int n_density_estimation = 10;
   const int n_samples = 1;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
@@ -102,6 +102,13 @@ int main() {
         float pdf;
         if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
           const Vec3 radiance = integrator.integrate(ray, scene, sampler) / pdf;
+
+          if (std::isnan(radiance[0]) || std::isnan(radiance[1]) ||
+              std::isnan(radiance[2])) {
+            spdlog::error("radiance is NaN");
+            std::exit(1);
+          }
+
           image.addPixel(i, j, radiance);
         } else {
           image.setPixel(i, j, Vec3(0));
