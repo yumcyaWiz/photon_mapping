@@ -10,14 +10,14 @@
 class Primitive {
  private:
   const std::shared_ptr<Shape> shape;
-  const std::shared_ptr<Material> material;
+  const std::shared_ptr<BxDF> bxdf;
   const std::shared_ptr<AreaLight> areaLight;
 
  public:
   Primitive(const std::shared_ptr<Shape>& shape,
-            const std::shared_ptr<Material>& material,
+            const std::shared_ptr<BxDF>& bxdf,
             const std::shared_ptr<AreaLight>& areaLight = nullptr)
-      : shape(shape), material(material), areaLight(areaLight) {}
+      : shape(shape), bxdf(bxdf), areaLight(areaLight) {}
 
   bool hasAreaLight() const { return areaLight != nullptr; }
 
@@ -32,19 +32,19 @@ class Primitive {
   }
 
   Vec3 sampleBRDF(const Vec3& wo, const SurfaceInfo& surfInfo, Sampler& sampler,
-                  Vec3& wi, MaterialType& type, float& pdf) const {
+                  Vec3& wi, float& pdf) const {
     // world to local transform
     const Vec3 wo_l =
         worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
 
     // sample direction in tangent space
     Vec3 wi_l;
-    const Vec3 brdf = material->sampleBRDF(wo_l, sampler, wi_l, type, pdf);
+    const Vec3 f = bxdf->sampleDirection(wo_l, sampler, wi_l, pdf);
 
     // local to world transform
     wi = localToWorld(wi_l, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
 
-    return brdf;
+    return f;
   }
 };
 
