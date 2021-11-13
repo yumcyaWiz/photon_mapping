@@ -17,24 +17,23 @@ class Integrator {
 // implementation of photon mapping
 class PhotonMapping : public Integrator {
  private:
-  const int n_photons;
-  const int n_density_estimation;
-  static constexpr int max_depth = 100;
+  const int nPhotons;
+  const int nDensityEstimation;
+  static constexpr int maxDepth = 100;
   PhotonMap photon_map;
 
  public:
   PhotonMapping(int nPhotons, int nDensityEstimation)
-      : n_photons(nPhotons), n_density_estimation(nDensityEstimation) {}
+      : nPhotons(nPhotons), nDensityEstimation(nDensityEstimation) {}
 
   const PhotonMap* getPhotonMapPtr() const { return &photon_map; }
 
   void build(const Scene& scene, Sampler& sampler) override {
-    // TODO: trace photons, build photon map
-    std::vector<Photon> photons(n_photons);
+    std::vector<Photon> photons(nPhotons);
 
     // photon tracing
     spdlog::info("[PhotonMapping] tracing photons");
-    for (int i = 0; i < n_photons; ++i) {
+    for (int i = 0; i < nPhotons; ++i) {
       // sample light
       float light_choose_pdf;
       const std::shared_ptr<Light> light =
@@ -58,7 +57,7 @@ class PhotonMapping : public Integrator {
       // trace photons
       // whener hitting diffuse surface, add photon to the photon array
       // recursively tracing photon with russian roulette
-      for (int k = 0; k < max_depth; ++k) {
+      for (int k = 0; k < maxDepth; ++k) {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           // if hitting diffuse surface, add photon to the photon array
@@ -69,10 +68,14 @@ class PhotonMapping : public Integrator {
           }
 
           // russian roulette
-          const float throughput_max =
-              std::max(throughput[0], std::max(throughput[1], throughput[2]));
-          if (sampler.getNext1D() > throughput_max) {
-            break;
+          if (k > 0) {
+            const float russian_roulette_prob = std::min(
+                std::max(throughput[0], std::max(throughput[1], throughput[2])),
+                1.0f);
+            if (sampler.getNext1D() >= russian_roulette_prob) {
+              break;
+            }
+            throughput /= russian_roulette_prob;
           }
 
           // sample direction by BxDF

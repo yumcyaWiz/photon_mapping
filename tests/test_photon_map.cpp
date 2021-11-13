@@ -103,15 +103,17 @@ int main() {
         if (scene.intersect(ray, info)) {
           // query photon map
           float r2;
-          int photon_idx =
+          const int photon_idx =
               photon_map->queryNearestPhoton(info.surfaceInfo.position, r2);
 
+          // if distance to the photon is small enough, write photon's
+          // throughput to the image
           if (r2 < 0.0001f) {
             const Photon& photon = photons_ptr[photon_idx];
             image.setPixel(i, j, photon.throughput);
           }
         } else {
-          image.setPixel(i, j, Vec3(0.1));
+          image.setPixel(i, j, Vec3(0));
         }
       } else {
         image.setPixel(i, j, Vec3(0));
