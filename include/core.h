@@ -48,6 +48,13 @@ struct Vec3 {
   float& operator[](int i) { return v[i]; }
 
   Vec3 operator-() const { return Vec3(-v[0], -v[1], -v[2]); }
+
+  Vec3& operator*=(const Vec3& v) {
+    this->v[0] *= v[0];
+    this->v[1] *= v[1];
+    this->v[2] *= v[2];
+    return *this;
+  }
 };
 
 inline Vec3 operator+(const Vec3& v1, const Vec3& v2) {
