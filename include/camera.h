@@ -18,7 +18,7 @@ class Camera {
   float focal_length;
 
  public:
-  Camera(const Vec3& position, const Vec3& forward, float FOV = 90.0f)
+  Camera(const Vec3& position, const Vec3& forward, float FOV = 0.5f * PI)
       : position(position), forward(forward) {
     right = normalize(cross(forward, Vec3(0, 1, 0)));
     up = normalize(cross(right, forward));
@@ -31,7 +31,7 @@ class Camera {
     spdlog::info("[Camera] up: ({}, {}, {})", up[0], up[1], up[2]);
 
     // compute focal length from FOV
-    focal_length = 1.0f / std::tan(deg2rad(0.5f * FOV));
+    focal_length = 1.0f / std::tan(0.5f * FOV);
 
     spdlog::info("[Camera] focal_length: {}", focal_length);
   }
