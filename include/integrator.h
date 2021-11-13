@@ -89,23 +89,33 @@ class PhotonMapping : public Integrator {
   void build(const Scene& scene, Sampler& sampler) override {
     std::vector<Photon> photons;
 
+    // init sampler for each thread
+    std::vector<std::unique_ptr<Sampler>> samplers(omp_get_max_threads());
+    for (int i = 0; i < samplers.size(); ++i) {
+      samplers[i] = sampler.clone();
+      samplers[i]->setSeed(samplers[i]->getSeed() * (i + 1));
+    }
+
     // photon tracing
     spdlog::info("[PhotonMapping] tracing photons");
-#pragma omp parallel for schedule(dynamic, 1)
+#pragma omp parallel for
     for (int i = 0; i < nPhotons; ++i) {
+      auto& sampler_per_thread = *samplers[omp_get_thread_num()];
+
       // sample light
       float light_choose_pdf;
       const std::shared_ptr<Light> light =
-          scene.sampleLight(sampler, light_choose_pdf);
+          scene.sampleLight(sampler_per_thread, light_choose_pdf);
 
       // sample point on light
       float light_pos_pdf;
-      const SurfaceInfo light_surf = light->samplePoint(sampler, light_pos_pdf);
+      const SurfaceInfo light_surf =
+          light->samplePoint(sampler_per_thread, light_pos_pdf);
 
       // sample direction on light
       float light_dir_pdf;
       const Vec3 dir =
-          light->sampleDirection(light_surf, sampler, light_dir_pdf);
+          light->sampleDirection(light_surf, sampler_per_thread, light_dir_pdf);
 
       // spawn ray
       Ray ray(light_surf.position, dir);
@@ -135,7 +145,7 @@ class PhotonMapping : public Integrator {
             const float russian_roulette_prob = std::min(
                 std::max(throughput[0], std::max(throughput[1], throughput[2])),
                 1.0f);
-            if (sampler.getNext1D() >= russian_roulette_prob) {
+            if (sampler_per_thread.getNext1D() >= russian_roulette_prob) {
               break;
             }
             throughput /= russian_roulette_prob;
@@ -144,8 +154,9 @@ class PhotonMapping : public Integrator {
           // sample direction by BxDF
           Vec3 dir;
           float pdf_dir;
-          const Vec3 f = info.hitPrimitive->sampleBxDF(
-              -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
+          const Vec3 f =
+              info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
+                                            sampler_per_thread, dir, pdf_dir);
 
           // update throughput and ray
           throughput *=
@@ -169,6 +180,7 @@ class PhotonMapping : public Integrator {
     // recursively raytrace until hitting diffuse surface
     Ray ray = ray_in;
     Vec3 throughput(1, 1, 1);
+
     for (int k = 0; k < maxDepth; ++k) {
       IntersectInfo info;
       if (scene.intersect(ray, info)) {

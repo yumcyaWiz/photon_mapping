@@ -38,6 +38,7 @@ class RNG {
     state.inc = 1;
   }
 
+  uint64_t getSeed() const { return state.state; }
   void setSeed(uint64_t seed) { state.state = seed; }
 
   float getNext() {
@@ -56,6 +57,7 @@ class Sampler {
 
   Sampler(uint64_t seed) : rng(seed) {}
 
+  uint64_t getSeed() const { return rng.getSeed(); }
   void setSeed(uint64_t seed) { rng.setSeed(seed); }
 
   virtual std::unique_ptr<Sampler> clone() const = 0;
