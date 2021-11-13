@@ -60,7 +60,7 @@ class Scene {
     spdlog::info("[Scene] number of lights: {}", lights.size());
   }
 
-  bool intersect(const Ray& ray, IntersectInfo& info) {
+  bool intersect(const Ray& ray, IntersectInfo& info) const {
     return intersector.intersect(ray, info);
   }
 
