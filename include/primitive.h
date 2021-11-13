@@ -21,7 +21,12 @@ class Primitive {
 
   bool hasAreaLight() const { return areaLight != nullptr; }
 
+  // NOTE: for populating scene's light array
   std::shared_ptr<AreaLight> getAreaLightPtr() const { return areaLight; }
+
+  Vec3 Le(const SurfaceInfo& surfInfo, const Vec3& dir) const {
+    return areaLight->Le(surfInfo, dir);
+  }
 
   bool intersect(const Ray& ray, IntersectInfo& info) const {
     if (shape->intersect(ray, info)) {

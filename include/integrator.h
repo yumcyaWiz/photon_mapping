@@ -113,10 +113,41 @@ class PhotonMapping : public Integrator {
     photonMap.build();
   }
 
-  Vec3 integrate(const Ray& ray, const Scene& scene,
+  Vec3 integrate(const Ray& ray_in, const Scene& scene,
                  Sampler& sampler) const override {
-    // TODO: trace from camera until hitting diffuse surface, compute radiance
-    return Vec3(0);
+    // recursively raytrace until hitting diffuse surface
+    Ray ray = ray_in;
+    Vec3 throughput(1, 1, 1);
+    for (int k = 0; k < maxDepth; ++k) {
+      IntersectInfo info;
+      if (scene.intersect(ray, info)) {
+        // when directly hitting light, break
+        if (info.hitPrimitive->hasAreaLight()) {
+          return throughput *
+                 info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
+        }
+
+        const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
+        if (bxdf_type == BxDFType::DIFFUSE) {
+          // get nearby photons
+        }
+        // generate next ray
+        else if (bxdf_type == BxDFType::SPECULAR) {
+          // sample direction by BxDF
+          Vec3 dir;
+          float pdf_dir;
+          Vec3 f = info.hitPrimitive->sampleBRDF(
+              -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
+
+          // update throughput and ray
+          throughput *=
+              f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
+          ray = Ray(info.surfaceInfo.position, dir);
+        }
+      } else {
+        break;
+      }
+    }
   }
 };
 
