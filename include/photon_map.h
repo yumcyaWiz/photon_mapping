@@ -174,6 +174,7 @@ class KdTree {
       const auto& p = queue.top();
       ret[i] = p.second;
       maxDist2 = std::max(maxDist2, p.first);
+      queue.pop();
     }
 
     return ret;
