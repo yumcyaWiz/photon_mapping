@@ -87,8 +87,7 @@ class PhotonMapping : public Integrator {
   const PhotonMap* getPhotonMapPtr() const { return &photonMap; }
 
   void build(const Scene& scene, Sampler& sampler) override {
-    // NOTE: to parallelize photon tracing, prepare array of std::option<Photon>
-    std::vector<std::optional<Photon>> photons(nPhotons);
+    std::vector<Photon> photons;
 
     // photon tracing
     spdlog::info("[PhotonMapping] tracing photons");
@@ -123,8 +122,12 @@ class PhotonMapping : public Integrator {
           // if hitting diffuse surface, add photon to the photon array
           const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
           if (bxdf_type == BxDFType::DIFFUSE) {
-            photons[i] =
-                Photon(throughput, info.surfaceInfo.position, -ray.direction);
+            // TODO: remove lock to get more speed
+#pragma omp critical
+            {
+              photons.emplace_back(throughput, info.surfaceInfo.position,
+                                   -ray.direction);
+            }
           }
 
           // russian roulette
@@ -155,15 +158,9 @@ class PhotonMapping : public Integrator {
       }
     }
 
-    // add photon to the photon map
-    for (const auto& p : photons) {
-      if (p) {
-        photonMap.addPhoton(p.value());
-      }
-    }
-
     // build photon map
     spdlog::info("[PhotonMapping] building photon map");
+    photonMap.setPhotons(photons);
     photonMap.build();
   }
 
@@ -218,7 +215,7 @@ class PhotonMapping : public Integrator {
           ray = Ray(info.surfaceInfo.position, dir);
         } else {
           spdlog::error("[PhotonMapping] invalid BxDF type");
-          return Vec3(0);
+          break;
         }
       } else {
         break;
