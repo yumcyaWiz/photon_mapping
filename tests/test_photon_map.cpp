@@ -10,7 +10,7 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_photons = 100000;
+  const int n_photons = 10000;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);
 
@@ -57,7 +57,7 @@ int main() {
       Vec3(2.65, 0, 2.96), Vec3(0, 3.3, 0), Vec3(1.58, 0, -0.49));
 
   const auto light_shape = std::make_shared<Plane>(
-      Vec3(3.43, 5.486, 2.27), Vec3(-1.3, 0, 0), Vec3(0, 0, 1.05));
+      Vec3(3.43, 5.486, 2.27), Vec3(0, 0, 1.05), Vec3(-1.3, 0, 0));
   const auto light = std::make_shared<AreaLight>(Vec3(34, 19, 10), light_shape);
 
   Scene scene;
@@ -82,7 +82,7 @@ int main() {
   UniformSampler sampler;
 
   // photon tracing and build photon map
-  PhotonMapping integrator(n_photons, 1);
+  PhotonMapping integrator(n_photons, 1, 1);
   integrator.build(scene, sampler);
 
   // visualize photon map

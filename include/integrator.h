@@ -21,14 +21,16 @@ class PhotonMapping : public Integrator {
  private:
   const int nPhotons;
   const int nDensityEstimation;
-  static constexpr int maxDepth = 100;
-  PhotonMap photon_map;
+  const int maxDepth = 100;
+  PhotonMap photonMap;
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation)
-      : nPhotons(nPhotons), nDensityEstimation(nDensityEstimation) {}
+  PhotonMapping(int nPhotons, int nDensityEstimation, int maxDepth = 100)
+      : nPhotons(nPhotons),
+        nDensityEstimation(nDensityEstimation),
+        maxDepth(maxDepth) {}
 
-  const PhotonMap* getPhotonMapPtr() const { return &photon_map; }
+  const PhotonMap* getPhotonMapPtr() const { return &photonMap; }
 
   void build(const Scene& scene, Sampler& sampler) override {
     // NOTE: to parallelize photon tracing, prepare array of std::option<Photon>
@@ -51,19 +53,16 @@ class PhotonMapping : public Integrator {
       const Vec3 light_dir =
           light->sampleDirection(light_surf, sampler, light_dir_pdf);
 
-      spdlog::info("{}, {}, {}", light_surf.normal[0], light_surf.normal[1],
-                   light_surf.normal[2]);
-
       // spawn ray
-      Ray ray(light_surf.position, light_dir_pdf);
+      Ray ray(light_surf.position, light_dir);
       Vec3 throughput = light->Le(light_surf, light_dir) /
                         (light_choose_pdf * light_pos_pdf) *
-                        dot(light_dir, light_surf.normal);
+                        std::abs(dot(light_dir, light_surf.normal));
 
       // trace photons
       // whener hitting diffuse surface, add photon to the photon array
       // recursively tracing photon with russian roulette
-      for (int k = 0; k < 1; ++k) {
+      for (int k = 0; k < maxDepth; ++k) {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           // if hitting diffuse surface, add photon to the photon array
@@ -104,13 +103,13 @@ class PhotonMapping : public Integrator {
     // add photon to the photon map
     for (const auto& p : photons) {
       if (p) {
-        photon_map.addPhoton(p.value());
+        photonMap.addPhoton(p.value());
       }
     }
 
     // build photon map
     spdlog::info("[PhotonMapping] building photon map");
-    photon_map.build();
+    photonMap.build();
   }
 
   Vec3 integrate(const Ray& ray, const Scene& scene,
