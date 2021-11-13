@@ -14,6 +14,8 @@ class BxDF {
  public:
   BxDF(const BxDFType& type) : type(type) {}
 
+  static float cosTheta(const Vec3& v) { return v[1]; }
+
   BxDFType getType() const { return type; }
 
   virtual Vec3 evaluate(const Vec3& wo, const Vec3& wi) const = 0;
@@ -28,7 +30,14 @@ class Lambert : public BxDF {
  public:
   Lambert(const Vec3& rho) : BxDF(BxDFType::DIFFUSE), rho(rho) {}
 
-  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const { return rho / PI; }
+  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const {
+    // when wo, wi is under the surface, return 0
+    const float cosThetaO = BxDF::cosTheta(wo);
+    const float cosThetaI = BxDF::cosTheta(wi);
+    if (cosThetaO < 0 || cosThetaI < 0) return Vec3(0);
+
+    return rho / PI;
+  }
 
   Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
                        float& pdf) const override {
