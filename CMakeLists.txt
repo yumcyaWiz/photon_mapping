@@ -21,6 +21,7 @@ target_compile_features(pm INTERFACE cxx_std_20)
 set_target_properties(pm PROPERTIES CXX_EXTENSIONS OFF)
 
 target_link_libraries(pm INTERFACE spdlog::spdlog)
+target_link_libraries(pm INTERFACE OpenMP::OpenMP_CXX)
 
 # examples
 add_subdirectory("examples")
