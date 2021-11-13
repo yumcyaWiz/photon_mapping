@@ -50,14 +50,14 @@ class PhotonMapping : public Integrator {
 
       // sample direction on light
       float light_dir_pdf;
-      const Vec3 light_dir =
+      const Vec3 dir =
           light->sampleDirection(light_surf, sampler, light_dir_pdf);
 
       // spawn ray
-      Ray ray(light_surf.position, light_dir);
-      Vec3 throughput = light->Le(light_surf, light_dir) /
+      Ray ray(light_surf.position, dir);
+      Vec3 throughput = light->Le(light_surf, dir) /
                         (light_choose_pdf * light_pos_pdf) *
-                        std::abs(dot(light_dir, light_surf.normal));
+                        std::abs(dot(dir, light_surf.normal));
 
       // trace photons
       // whener hitting diffuse surface, add photon to the photon array

@@ -129,7 +129,7 @@ inline Vec3 localToWorld(const Vec3& v, const Vec3& lx, const Vec3& ly,
   return ret;
 }
 
-inline Vec3 sphericalToCartesian(float phi, float theta) {
+inline Vec3 sphericalToCartesian(float theta, float phi) {
   return Vec3(std::cos(phi) * std::sin(theta), std::cos(theta),
               std::sin(phi) * std::sin(theta));
 }
