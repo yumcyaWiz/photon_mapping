@@ -32,14 +32,14 @@ class Primitive {
   }
 
   Vec3 sampleBRDF(const Vec3& wo, const SurfaceInfo& surfInfo, Sampler& sampler,
-                  Vec3& wi, float& pdf) const {
+                  Vec3& wi, MaterialType& type, float& pdf) const {
     // world to local transform
     const Vec3 wo_l =
         worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
 
     // sample direction in tangent space
     Vec3 wi_l;
-    const Vec3 brdf = material->sampleBRDF(wo_l, sampler, wi_l, pdf);
+    const Vec3 brdf = material->sampleBRDF(wo_l, sampler, wi_l, type, pdf);
 
     // local to world transform
     wi = localToWorld(wi_l, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
