@@ -38,7 +38,18 @@ class Primitive {
 
   BxDFType getBxDFType() const { return bxdf->getType(); }
 
-  Vec3 sampleBRDF(const Vec3& wo, const SurfaceInfo& surfInfo, Sampler& sampler,
+  Vec3 evaluateBxDF(const Vec3& wo, const Vec3& wi,
+                    const SurfaceInfo& surfInfo) {
+    // world to local transform
+    const Vec3 wo_l =
+        worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
+    const Vec3 wi_l =
+        worldToLocal(wi, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
+
+    return bxdf->evaluate(wo_l, wi_l);
+  }
+
+  Vec3 sampleBxDF(const Vec3& wo, const SurfaceInfo& surfInfo, Sampler& sampler,
                   Vec3& wi, float& pdf) const {
     // world to local transform
     const Vec3 wo_l =
