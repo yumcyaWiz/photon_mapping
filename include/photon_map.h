@@ -8,9 +8,9 @@
 #include "core.h"
 
 struct Photon {
-  Vec3 flux;
+  Vec3 throughput;  // F*G/pdf
   Vec3 position;
-  Vec3 wi;
+  Vec3 wi;  // incident direction
 
   // implement Point
   static constexpr int dim = 3;
@@ -18,7 +18,7 @@ struct Photon {
 
   Photon() {}
   Photon(const Vec3& flux, const Vec3& position, const Vec3& wi)
-      : flux(flux), position(position), wi(wi) {}
+      : throughput(flux), position(position), wi(wi) {}
 };
 
 template <typename T>
