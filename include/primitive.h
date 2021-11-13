@@ -31,6 +31,8 @@ class Primitive {
     return false;
   }
 
+  BxDFType getBxDFType() const { return bxdf->getType(); }
+
   Vec3 sampleBRDF(const Vec3& wo, const SurfaceInfo& surfInfo, Sampler& sampler,
                   Vec3& wi, float& pdf) const {
     // world to local transform
