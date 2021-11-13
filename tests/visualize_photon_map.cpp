@@ -90,7 +90,6 @@ int main() {
   spdlog::info("[main] visualizing photon map");
 
   const PhotonMap* photon_map = integrator.getPhotonMapPtr();
-  const Photon* photons_ptr = photon_map->getPhotonsPtr();
 
 #pragma omp parallel for schedule(dynamic, 1) collapse(2)
   for (int i = 0; i < height; ++i) {
@@ -110,7 +109,7 @@ int main() {
           // if distance to the photon is small enough, write photon's
           // throughput to the image
           if (r2 < 0.0001f) {
-            const Photon& photon = photons_ptr[photon_idx];
+            const Photon& photon = photon_map->getIthPhoton(photon_idx);
             image.setPixel(i, j, photon.throughput);
           }
         } else {

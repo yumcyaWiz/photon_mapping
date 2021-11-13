@@ -189,7 +189,7 @@ class PhotonMap {
   PhotonMap() {}
 
   const int getNPhotons() const { return photons.size(); }
-  const Photon* getPhotonsPtr() const { return photons.data(); }
+  const Photon& getIthPhoton(int i) const { return photons[i]; }
 
   void addPhoton(const Photon& photon) { photons.push_back(photon); }
   void setPhotons(const std::vector<Photon>& photons) {
@@ -207,7 +207,10 @@ class PhotonMap {
     return indices[0];
   }
 
-  void queryPhotons(const Vec3& p, int n_photons, float& max_dist2) const {}
+  std::vector<int> queryKNearestPhotons(const Vec3& p, int k,
+                                        float& max_dist2) const {
+    return kdtree.searchKNearest(p, 1, max_dist2);
+  }
 };
 
 #endif
