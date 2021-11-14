@@ -1,6 +1,6 @@
 # photon_mapping
 
-minimal but extensible implementation of photon mapping in C++.
+minimal but extensible header only implementation of photon mapping in C++.
 
 ## Requirements
 
