@@ -21,6 +21,7 @@ CMake options.
 mkdir build
 cd build
 cmake ..
+make
 ```
 
 ## Structure
