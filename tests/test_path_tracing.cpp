@@ -7,23 +7,11 @@
 #include "primitive.h"
 #include "scene.h"
 
-int main() {
-  const int width = 512;
-  const int height = 512;
-  const int n_samples = 10000;
-  const int max_depth = 100;
-  const Vec3 camPos(2.78, 2.73, -9);
-  const Vec3 lookAt(2.78, 2.73, 2.796);
-
-  Image image(width, height);
-
-  const Camera camera(camPos, normalize(lookAt - camPos), 0.25 * PI);
-
-  // cornellbox scene
+// cornellbox
+void cornellboxScene(Scene& scene) {
   const auto white = std::make_shared<Lambert>(Vec3(0.8));
   const auto red = std::make_shared<Lambert>(Vec3(0.8, 0.05, 0.05));
   const auto green = std::make_shared<Lambert>(Vec3(0.05, 0.8, 0.05));
-  const auto mirror = std::make_shared<Mirror>(Vec3(0.99));
 
   const auto floor =
       std::make_shared<Plane>(Vec3(0), Vec3(0, 0, 5.592), Vec3(5.56, 0, 0));
@@ -62,8 +50,7 @@ int main() {
       Vec3(3.43, 5.486, 2.27), Vec3(0, 0, 1.05), Vec3(-1.3, 0, 0));
   const auto light = std::make_shared<AreaLight>(Vec3(34, 19, 10), light_shape);
 
-  Scene scene;
-  scene.addPrimitive(Primitive(floor, mirror));
+  scene.addPrimitive(Primitive(floor, white));
   scene.addPrimitive(Primitive(rightWall, red));
   scene.addPrimitive(Primitive(leftWall, green));
   scene.addPrimitive(Primitive(ceil, white));
@@ -79,6 +66,59 @@ int main() {
   scene.addPrimitive(Primitive(tallBox4, white));
   scene.addPrimitive(Primitive(tallBox5, white));
   scene.addPrimitive(Primitive(light_shape, white, light));
+}
+
+// cornellbox with mirror sphere
+void cornellboxMirrorScene(Scene& scene) {
+  const auto white = std::make_shared<Lambert>(Vec3(0.8));
+  const auto red = std::make_shared<Lambert>(Vec3(0.8, 0.05, 0.05));
+  const auto green = std::make_shared<Lambert>(Vec3(0.05, 0.8, 0.05));
+  const auto mirror = std::make_shared<Mirror>(Vec3(0.9));
+
+  const auto floor =
+      std::make_shared<Plane>(Vec3(0), Vec3(0, 0, 5.592), Vec3(5.56, 0, 0));
+  const auto rightWall =
+      std::make_shared<Plane>(Vec3(0), Vec3(0, 5.488, 0), Vec3(0, 0, 5.592));
+  const auto leftWall = std::make_shared<Plane>(
+      Vec3(5.56, 0, 0), Vec3(0, 0, 5.592), Vec3(0, 5.488, 0));
+  const auto ceil = std::make_shared<Plane>(Vec3(0, 5.488, 0), Vec3(5.56, 0, 0),
+                                            Vec3(0, 0, 5.592));
+  const auto backWall = std::make_shared<Plane>(
+      Vec3(0, 0, 5.592), Vec3(0, 5.488, 0), Vec3(5.56, 0, 0));
+
+  const auto smallSphere =
+      std::make_shared<Sphere>(Vec3(1.5f, 1.0f, 1.5), 1.0f);
+  const auto bigSphere =
+      std::make_shared<Sphere>(Vec3(3.75f, 1.5f, 3.5f), 1.5f);
+
+  const auto light_shape = std::make_shared<Plane>(
+      Vec3(3.43, 5.486, 2.27), Vec3(0, 0, 1.05), Vec3(-1.3, 0, 0));
+  const auto light = std::make_shared<AreaLight>(Vec3(34, 19, 10), light_shape);
+
+  scene.addPrimitive(Primitive(floor, white));
+  scene.addPrimitive(Primitive(rightWall, red));
+  scene.addPrimitive(Primitive(leftWall, green));
+  scene.addPrimitive(Primitive(ceil, white));
+  scene.addPrimitive(Primitive(backWall, white));
+  scene.addPrimitive(Primitive(smallSphere, mirror));
+  scene.addPrimitive(Primitive(bigSphere, mirror));
+  scene.addPrimitive(Primitive(light_shape, white, light));
+}
+
+int main() {
+  const int width = 512;
+  const int height = 512;
+  const int n_samples = 10000;
+  const int max_depth = 100;
+  const Vec3 camPos(2.78, 2.73, -9);
+  const Vec3 lookAt(2.78, 2.73, 2.796);
+
+  Image image(width, height);
+
+  const Camera camera(camPos, normalize(lookAt - camPos), 0.25 * PI);
+
+  Scene scene;
+  cornellboxMirrorScene(scene);
   scene.build();
 
   // photon tracing and build photon map
