@@ -23,6 +23,7 @@ int main() {
   const auto white = std::make_shared<Lambert>(Vec3(0.8));
   const auto red = std::make_shared<Lambert>(Vec3(0.8, 0.05, 0.05));
   const auto green = std::make_shared<Lambert>(Vec3(0.05, 0.8, 0.05));
+  const auto mirror = std::make_shared<Mirror>(Vec3(0.99));
 
   const auto floor =
       std::make_shared<Plane>(Vec3(0), Vec3(0, 0, 5.592), Vec3(5.56, 0, 0));
@@ -62,7 +63,7 @@ int main() {
   const auto light = std::make_shared<AreaLight>(Vec3(34, 19, 10), light_shape);
 
   Scene scene;
-  scene.addPrimitive(Primitive(floor, white));
+  scene.addPrimitive(Primitive(floor, mirror));
   scene.addPrimitive(Primitive(rightWall, red));
   scene.addPrimitive(Primitive(leftWall, green));
   scene.addPrimitive(Primitive(ceil, white));
@@ -83,7 +84,7 @@ int main() {
   // photon tracing and build photon map
   PathTracing integrator(max_depth);
 
-#pragma omp parallel for schedule(dynamic, 1) collapse(2)
+#pragma omp parallel for collapse(2) schedule(dynamic, 1)
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       // init sampler

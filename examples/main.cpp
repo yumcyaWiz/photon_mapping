@@ -13,7 +13,7 @@ int main() {
   const int n_samples = 100;
   const int n_photons = 1000000;
   const int n_density_estimation = 100;
-  const bool final_gathering = false;
+  const bool final_gathering = true;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);
@@ -26,6 +26,7 @@ int main() {
   const auto white = std::make_shared<Lambert>(Vec3(0.8));
   const auto red = std::make_shared<Lambert>(Vec3(0.8, 0.05, 0.05));
   const auto green = std::make_shared<Lambert>(Vec3(0.05, 0.8, 0.05));
+  const auto mirror = std::make_shared<Mirror>(Vec3(0.99));
 
   const auto floor =
       std::make_shared<Plane>(Vec3(0), Vec3(0, 0, 5.592), Vec3(5.56, 0, 0));
@@ -65,7 +66,7 @@ int main() {
   const auto light = std::make_shared<AreaLight>(Vec3(34, 19, 10), light_shape);
 
   Scene scene;
-  scene.addPrimitive(Primitive(floor, white));
+  scene.addPrimitive(Primitive(floor, mirror));
   scene.addPrimitive(Primitive(rightWall, red));
   scene.addPrimitive(Primitive(leftWall, green));
   scene.addPrimitive(Primitive(ceil, white));

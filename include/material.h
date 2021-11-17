@@ -16,6 +16,10 @@ class BxDF {
 
   static float cosTheta(const Vec3& v) { return v[1]; }
 
+  static Vec3 reflect(const Vec3& v, const Vec3& n) {
+    return -v + 2.0f * dot(v, n) * n;
+  }
+
   BxDFType getType() const { return type; }
 
   virtual Vec3 evaluate(const Vec3& wo, const Vec3& wi) const = 0;
@@ -30,7 +34,7 @@ class Lambert : public BxDF {
  public:
   Lambert(const Vec3& rho) : BxDF(BxDFType::DIFFUSE), rho(rho) {}
 
-  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const {
+  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const override {
     // when wo, wi is under the surface, return 0
     const float cosThetaO = BxDF::cosTheta(wo);
     const float cosThetaI = BxDF::cosTheta(wi);
@@ -45,6 +49,27 @@ class Lambert : public BxDF {
     wi = sampleCosineHemisphere(sampler.getNext2D(), pdf);
 
     return evaluate(wo, wi);
+  }
+};
+
+class Mirror : public BxDF {
+ private:
+  Vec3 rho;
+
+ public:
+  Mirror(const Vec3& rho) : BxDF(BxDFType::SPECULAR), rho(rho) {}
+
+  // NOTE: delta function
+  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const override {
+    return Vec3(0);
+  }
+
+  Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
+                       float& pdf) const override {
+    wi = reflect(wo, Vec3(0, 1, 0));
+    pdf = 1.0f;
+
+    return rho;
   }
 };
 
