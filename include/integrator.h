@@ -76,9 +76,7 @@ class PhotonMapping : public Integrator {
   const int nPhotons;
   const int nDensityEstimation;
   const int maxDepth;
-  const int nDirectIllumination;
   bool finalGathering;
-  const int nFinalGathering;
 
   PhotonMap photonMap;
 
@@ -171,13 +169,11 @@ class PhotonMapping : public Integrator {
   }
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation, int nDirectIllumination,
-                bool finalGathering, int nFinalGathering, int maxDepth = 100)
+  PhotonMapping(int nPhotons, int nDensityEstimation, bool finalGathering,
+                int maxDepth = 100)
       : nPhotons(nPhotons),
         nDensityEstimation(nDensityEstimation),
-        nDirectIllumination(nDirectIllumination),
         finalGathering(finalGathering),
-        nFinalGathering(nFinalGathering),
         maxDepth(maxDepth) {}
 
   const PhotonMap* getPhotonMapPtr() const { return &photonMap; }
@@ -306,22 +302,12 @@ class PhotonMapping : public Integrator {
           // trace one more ray, and compute reflected radiance there
           else {
             // compute direct illumination
-            Vec3 Ld;
-            for (int nd = 0; nd < nDirectIllumination; ++nd) {
-              Ld += computeDirectIllumination(scene, -ray.direction, info,
-                                              sampler);
-            }
-            Ld /= nDirectIllumination;
+            Vec3 Ld =
+                computeDirectIllumination(scene, -ray.direction, info, sampler);
 
-            // compute indirect illumination
-            // trace one more ray, compute reflected radiance using photon map
-            // there
-            Vec3 Li;
-            for (int n_fg = 0; n_fg < nFinalGathering; ++n_fg) {
-              Li += computeIndirectIllumination(scene, -ray.direction, info,
-                                                sampler);
-            }
-            Li /= nFinalGathering;
+            // compute indirect illumination with final gathering
+            Vec3 Li = computeIndirectIllumination(scene, -ray.direction, info,
+                                                  sampler);
 
             return throughput * (Ld + Li);
           }

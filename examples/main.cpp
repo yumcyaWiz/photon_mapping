@@ -10,12 +10,10 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_samples = 16;
+  const int n_samples = 100;
   const int n_photons = 1000000;
   const int n_density_estimation = 100;
-  const int n_direct_illumination = 6;
   const bool final_gathering = true;
-  const int n_final_gathering = 6;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);
   const Vec3 lookAt(2.78, 2.73, 2.796);
@@ -86,9 +84,8 @@ int main() {
   scene.build();
 
   // photon tracing and build photon map
-  PhotonMapping integrator(n_photons, n_density_estimation,
-                           n_direct_illumination, final_gathering,
-                           n_final_gathering, max_depth);
+  PhotonMapping integrator(n_photons, n_density_estimation, final_gathering,
+                           max_depth);
   UniformSampler sampler;
   integrator.build(scene, sampler);
 
