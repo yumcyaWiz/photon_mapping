@@ -77,6 +77,7 @@ class PhotonMapping : public Integrator {
   const int nDensityEstimation;
   const int maxDepth;
   bool finalGathering;
+  const int nFinalGathering;
 
   PhotonMap photonMap;
 
@@ -98,10 +99,13 @@ class PhotonMapping : public Integrator {
   }
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation, int maxDepth = 100)
+  PhotonMapping(int nPhotons, int nDensityEstimation, int maxDepth = 100,
+                bool finalGathering = false, int nFinalGathering = 12)
       : nPhotons(nPhotons),
         nDensityEstimation(nDensityEstimation),
-        maxDepth(maxDepth) {}
+        maxDepth(maxDepth),
+        finalGathering(finalGathering),
+        nFinalGathering(nFinalGathering) {}
 
   const PhotonMap* getPhotonMapPtr() const { return &photonMap; }
 
@@ -214,15 +218,52 @@ class PhotonMapping : public Integrator {
         // if hitting diffuse surface, query nearby photons and compute
         // reflected radiance
         if (bxdf_type == BxDFType::DIFFUSE) {
-          // get nearby photons
-          float max_dist2;
-          const std::vector<int> photon_indices =
-              photonMap.queryKNearestPhotons(info.surfaceInfo.position,
-                                             nDensityEstimation, max_dist2);
+          if (!finalGathering) {
+            // get nearby photons
+            float max_dist2;
+            const std::vector<int> photon_indices =
+                photonMap.queryKNearestPhotons(info.surfaceInfo.position,
+                                               nDensityEstimation, max_dist2);
 
-          return throughput * computeReflectedRadiance(-ray.direction, info,
-                                                       photon_indices,
-                                                       max_dist2);
+            return throughput * computeReflectedRadiance(-ray.direction, info,
+                                                         photon_indices,
+                                                         max_dist2);
+          }
+          // final gathering
+          // trace one more ray, and compute reflected radiance there
+          else {
+            Vec3 Lo;
+            for (int n_fg = 0; n_fg < nFinalGathering; ++n_fg) {
+              // sample direction by BxDF
+              Vec3 dir;
+              float pdf_dir;
+              const Vec3 f = info.hitPrimitive->sampleBxDF(
+                  -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
+              const float cos = std::abs(dot(info.surfaceInfo.normal, dir));
+
+              // trace final gathering ray
+              Ray ray_fg(info.surfaceInfo.position, dir);
+              IntersectInfo info_fg;
+              if (scene.intersect(ray_fg, info_fg)) {
+                if (info_fg.hitPrimitive->getBxDFType() == BxDFType::DIFFUSE) {
+                  // get nearby photons
+                  float max_dist2;
+                  const std::vector<int> photon_indices =
+                      photonMap.queryKNearestPhotons(
+                          info_fg.surfaceInfo.position, nDensityEstimation,
+                          max_dist2);
+
+                  Lo += f * cos *
+                        computeReflectedRadiance(-ray_fg.direction, info_fg,
+                                                 photon_indices, max_dist2) /
+                        pdf_dir;
+                }
+              }
+            }
+            Lo /= nFinalGathering;
+
+            return throughput * Lo;
+          }
         }
         // generate next ray
         else if (bxdf_type == BxDFType::SPECULAR) {
