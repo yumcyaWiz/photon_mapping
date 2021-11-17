@@ -76,7 +76,6 @@ class PhotonMapping : public Integrator {
   const int nPhotons;
   const int nDensityEstimation;
   const int maxDepth;
-  bool directIlluminationLightSampling;
   bool finalGathering;
 
   PhotonMap photonMap;
@@ -175,7 +174,6 @@ class PhotonMapping : public Integrator {
                 int maxDepth = 100)
       : nPhotons(nPhotons),
         nDensityEstimation(nDensityEstimation),
-        directIlluminationLightSampling(directIlluminationLightSampling),
         finalGathering(finalGathering),
         maxDepth(maxDepth) {}
 
