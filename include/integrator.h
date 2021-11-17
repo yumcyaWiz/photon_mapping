@@ -76,6 +76,7 @@ class PhotonMapping : public Integrator {
   const int nPhotons;
   const int nDensityEstimation;
   const int maxDepth;
+  const int nDirectIllumination;
   bool finalGathering;
   const int nFinalGathering;
 
@@ -102,6 +103,8 @@ class PhotonMapping : public Integrator {
   Vec3 computeDirectIllumination(const Scene& scene, const Vec3& wo,
                                  const IntersectInfo& info,
                                  Sampler& sampler) const {
+    Vec3 Ld;
+
     // sample light
     float pdf_choose_light;
     const std::shared_ptr<Light> light =
@@ -128,21 +131,24 @@ class PhotonMapping : public Integrator {
       const Vec3 Le = light->Le(light_surf, -wi);
       const Vec3 f = info.hitPrimitive->evaluateBxDF(wo, wi, info.surfaceInfo);
       const float cos = std::abs(dot(wi, info.surfaceInfo.normal));
-      return f * cos * Le / (pdf_choose_light * pdf_dir);
+      Ld = f * cos * Le / (pdf_choose_light * pdf_dir);
     }
+
+    return Ld;
   }
 
   // compute indirect illumination with final gathering
   void computeIndirectIllumination();
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation, int maxDepth = 100,
-                bool finalGathering = false, int nFinalGathering = 12)
+  PhotonMapping(int nPhotons, int nDensityEstimation, int nDirectIllumination,
+                bool finalGathering, int nFinalGathering, int maxDepth = 100)
       : nPhotons(nPhotons),
         nDensityEstimation(nDensityEstimation),
-        maxDepth(maxDepth),
+        nDirectIllumination(nDirectIllumination),
         finalGathering(finalGathering),
-        nFinalGathering(nFinalGathering) {}
+        nFinalGathering(nFinalGathering),
+        maxDepth(maxDepth) {}
 
   const PhotonMap* getPhotonMapPtr() const { return &photonMap; }
 
@@ -270,8 +276,12 @@ class PhotonMapping : public Integrator {
           // trace one more ray, and compute reflected radiance there
           else {
             // compute direct illumination
-            const Vec3 Ld =
-                computeDirectIllumination(scene, -ray.direction, info, sampler);
+            Vec3 Ld;
+            for (int nd = 0; nd < nDirectIllumination; ++nd) {
+              Ld += computeDirectIllumination(scene, -ray.direction, info,
+                                              sampler);
+            }
+            Ld /= nDirectIllumination;
 
             // compute indirect illumination
             // trace one more ray, compute reflected radiance using photon map
