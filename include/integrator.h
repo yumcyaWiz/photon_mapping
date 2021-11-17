@@ -78,15 +78,16 @@ class PhotonMapping : public Integrator {
   const int maxDepth;
   bool finalGathering;
 
-  PhotonMap photonMap;
+  PhotonMap globalPhotonMap;
+  PhotonMap causticsPhotonMap;
 
   // compute reflected radiance with photon map
-  Vec3 computeReflectedRadiance(const Vec3& wo, const IntersectInfo& info,
-                                const std::vector<int>& photon_indices,
-                                float max_dist2) const {
+  Vec3 computeRadianceWithPhotonMap(const Vec3& wo, const IntersectInfo& info,
+                                    const std::vector<int>& photon_indices,
+                                    float max_dist2) const {
     Vec3 Lo;
     for (const int photon_idx : photon_indices) {
-      const Photon& photon = photonMap.getIthPhoton(photon_idx);
+      const Photon& photon = globalPhotonMap.getIthPhoton(photon_idx);
       const Vec3 f =
           info.hitPrimitive->evaluateBxDF(wo, photon.wi, info.surfaceInfo);
       Lo += f * photon.throughput;
@@ -155,12 +156,13 @@ class PhotonMapping : public Integrator {
       if (info_fg.hitPrimitive->getBxDFType() == BxDFType::DIFFUSE) {
         // get nearby photons
         float max_dist2;
-        const std::vector<int> photon_indices = photonMap.queryKNearestPhotons(
-            info_fg.surfaceInfo.position, nDensityEstimation, max_dist2);
+        const std::vector<int> photon_indices =
+            globalPhotonMap.queryKNearestPhotons(info_fg.surfaceInfo.position,
+                                                 nDensityEstimation, max_dist2);
 
         Li += f * cos *
-              computeReflectedRadiance(-ray_fg.direction, info_fg,
-                                       photon_indices, max_dist2) /
+              computeRadianceWithPhotonMap(-ray_fg.direction, info_fg,
+                                           photon_indices, max_dist2) /
               pdf_dir;
       }
     }
@@ -176,7 +178,7 @@ class PhotonMapping : public Integrator {
         finalGathering(finalGathering),
         maxDepth(maxDepth) {}
 
-  const PhotonMap* getPhotonMapPtr() const { return &photonMap; }
+  const PhotonMap* getPhotonMapPtr() const { return &globalPhotonMap; }
 
   void build(const Scene& scene, Sampler& sampler) override {
     std::vector<Photon> photons;
@@ -264,8 +266,8 @@ class PhotonMapping : public Integrator {
 
     // build photon map
     spdlog::info("[PhotonMapping] building photon map");
-    photonMap.setPhotons(photons);
-    photonMap.build();
+    globalPhotonMap.setPhotons(photons);
+    globalPhotonMap.build();
   }
 
   Vec3 integrate(const Ray& ray_in, const Scene& scene,
@@ -292,12 +294,12 @@ class PhotonMapping : public Integrator {
             // get nearby photons
             float max_dist2;
             const std::vector<int> photon_indices =
-                photonMap.queryKNearestPhotons(info.surfaceInfo.position,
-                                               nDensityEstimation, max_dist2);
+                globalPhotonMap.queryKNearestPhotons(
+                    info.surfaceInfo.position, nDensityEstimation, max_dist2);
 
-            return throughput * computeReflectedRadiance(-ray.direction, info,
-                                                         photon_indices,
-                                                         max_dist2);
+            return throughput *
+                   computeRadianceWithPhotonMap(-ray.direction, info,
+                                                photon_indices, max_dist2);
           }
           // final gathering
           // trace one more ray, and compute reflected radiance there
