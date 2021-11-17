@@ -338,6 +338,7 @@ class PhotonMapping : public Integrator {
                 photons.emplace_back(throughput, info.surfaceInfo.position,
                                      -ray.direction);
               }
+              break;
             }
 
             if (bxdf_type == BxDFType::SPECULAR) {
@@ -404,15 +405,18 @@ class PhotonMapping : public Integrator {
             return throughput *
                    computeRadianceWithPhotonMap(-ray.direction, info);
           } else {
-            // compute direct illumination
+            // compute direct illumination by explicit light sampling
             Vec3 Ld =
                 computeDirectIllumination(scene, -ray.direction, info, sampler);
+
+            // compute caustics illumination with caustics photon map
+            Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
 
             // compute indirect illumination with final gathering
             Vec3 Li = computeIndirectIllumination(scene, -ray.direction, info,
                                                   sampler);
 
-            return throughput * (Ld + Li);
+            return throughput * (Ld + Lc + Li);
           }
         }
         // if hitting specular surface, generate next ray and continue
