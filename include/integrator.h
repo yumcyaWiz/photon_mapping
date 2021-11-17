@@ -81,7 +81,7 @@ class PhotonMapping : public Integrator {
 
   PhotonMap photonMap;
 
-  // compute reflected radiance with simple kernel
+  // compute reflected radiance with photon map
   Vec3 computeReflectedRadiance(const Vec3& wo, const IntersectInfo& info,
                                 const std::vector<int>& photon_indices,
                                 float max_dist2) const {
@@ -97,6 +97,43 @@ class PhotonMapping : public Integrator {
     }
     return Lo;
   }
+
+  // compute direct illumination with explicit light sampling(NEE)
+  Vec3 computeDirectIllumination(const Scene& scene, const Vec3& wo,
+                                 const IntersectInfo& info,
+                                 Sampler& sampler) const {
+    // sample light
+    float pdf_choose_light;
+    const std::shared_ptr<Light> light =
+        scene.sampleLight(sampler, pdf_choose_light);
+
+    // sample point on light
+    float pdf_pos_light;
+    const SurfaceInfo light_surf = light->samplePoint(sampler, pdf_pos_light);
+
+    // convert positional pdf to directional pdf
+    const Vec3 wi = normalize(light_surf.position - info.surfaceInfo.position);
+    const float r = length(light_surf.position - info.surfaceInfo.position);
+    const float pdf_dir =
+        pdf_pos_light * r * r / std::abs(dot(-wi, light_surf.normal));
+
+    // create shadow ray
+    constexpr float EPS = 0.001f;
+    Ray ray_shadow(info.surfaceInfo.position, wi);
+    ray_shadow.tmax = r - EPS;
+
+    // trace ray to the light
+    IntersectInfo info_shadow;
+    if (!scene.intersect(ray_shadow, info_shadow)) {
+      const Vec3 Le = light->Le(light_surf, -wi);
+      const Vec3 f = info.hitPrimitive->evaluateBxDF(wo, wi, info.surfaceInfo);
+      const float cos = std::abs(dot(wi, info.surfaceInfo.normal));
+      return f * cos * Le / (pdf_choose_light * pdf_dir);
+    }
+  }
+
+  // compute indirect illumination with final gathering
+  void computeIndirectIllumination();
 
  public:
   PhotonMapping(int nPhotons, int nDensityEstimation, int maxDepth = 100,
@@ -232,7 +269,14 @@ class PhotonMapping : public Integrator {
           // final gathering
           // trace one more ray, and compute reflected radiance there
           else {
-            Vec3 Lo;
+            // compute direct illumination
+            const Vec3 Ld =
+                computeDirectIllumination(scene, -ray.direction, info, sampler);
+
+            // compute indirect illumination
+            // trace one more ray, compute reflected radiance using photon map
+            // there
+            Vec3 Li;
             for (int n_fg = 0; n_fg < nFinalGathering; ++n_fg) {
               // sample direction by BxDF
               Vec3 dir;
@@ -253,16 +297,16 @@ class PhotonMapping : public Integrator {
                           info_fg.surfaceInfo.position, nDensityEstimation,
                           max_dist2);
 
-                  Lo += f * cos *
+                  Li += f * cos *
                         computeReflectedRadiance(-ray_fg.direction, info_fg,
                                                  photon_indices, max_dist2) /
                         pdf_dir;
                 }
               }
             }
-            Lo /= nFinalGathering;
+            Li /= nFinalGathering;
 
-            return throughput * Lo;
+            return throughput * (Ld + Li);
           }
         }
         // generate next ray
