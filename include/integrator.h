@@ -76,6 +76,7 @@ class PhotonMapping : public Integrator {
   const int nPhotons;
   const int nDensityEstimation;
   const int maxDepth;
+  bool directIlluminationLightSampling;
   bool finalGathering;
 
   PhotonMap photonMap;
@@ -169,10 +170,12 @@ class PhotonMapping : public Integrator {
   }
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation, bool finalGathering,
+  PhotonMapping(int nPhotons, int nDensityEstimation,
+                bool directIlluminationLightSampling, bool finalGathering,
                 int maxDepth = 100)
       : nPhotons(nPhotons),
         nDensityEstimation(nDensityEstimation),
+        directIlluminationLightSampling(directIlluminationLightSampling),
         finalGathering(finalGathering),
         maxDepth(maxDepth) {}
 
@@ -223,7 +226,8 @@ class PhotonMapping : public Integrator {
         if (scene.intersect(ray, info)) {
           // if hitting diffuse surface, add photon to the photon array
           const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
-          if (bxdf_type == BxDFType::DIFFUSE) {
+          if (bxdf_type == BxDFType::DIFFUSE &&
+              !info.hitPrimitive->hasAreaLight()) {
             // TODO: remove lock to get more speed
 #pragma omp critical
             {
