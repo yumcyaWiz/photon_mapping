@@ -138,7 +138,37 @@ class PhotonMapping : public Integrator {
   }
 
   // compute indirect illumination with final gathering
-  void computeIndirectIllumination();
+  Vec3 computeIndirectIllumination(const Scene& scene, const Vec3& wo,
+                                   const IntersectInfo& info,
+                                   Sampler& sampler) const {
+    Vec3 Li;
+
+    // sample direction by BxDF
+    Vec3 dir;
+    float pdf_dir;
+    const Vec3 f = info.hitPrimitive->sampleBxDF(wo, info.surfaceInfo, sampler,
+                                                 dir, pdf_dir);
+    const float cos = std::abs(dot(info.surfaceInfo.normal, dir));
+
+    // trace final gathering ray
+    Ray ray_fg(info.surfaceInfo.position, dir);
+    IntersectInfo info_fg;
+    if (scene.intersect(ray_fg, info_fg)) {
+      if (info_fg.hitPrimitive->getBxDFType() == BxDFType::DIFFUSE) {
+        // get nearby photons
+        float max_dist2;
+        const std::vector<int> photon_indices = photonMap.queryKNearestPhotons(
+            info_fg.surfaceInfo.position, nDensityEstimation, max_dist2);
+
+        Li += f * cos *
+              computeReflectedRadiance(-ray_fg.direction, info_fg,
+                                       photon_indices, max_dist2) /
+              pdf_dir;
+      }
+    }
+
+    return Li;
+  }
 
  public:
   PhotonMapping(int nPhotons, int nDensityEstimation, int nDirectIllumination,
@@ -288,31 +318,8 @@ class PhotonMapping : public Integrator {
             // there
             Vec3 Li;
             for (int n_fg = 0; n_fg < nFinalGathering; ++n_fg) {
-              // sample direction by BxDF
-              Vec3 dir;
-              float pdf_dir;
-              const Vec3 f = info.hitPrimitive->sampleBxDF(
-                  -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
-              const float cos = std::abs(dot(info.surfaceInfo.normal, dir));
-
-              // trace final gathering ray
-              Ray ray_fg(info.surfaceInfo.position, dir);
-              IntersectInfo info_fg;
-              if (scene.intersect(ray_fg, info_fg)) {
-                if (info_fg.hitPrimitive->getBxDFType() == BxDFType::DIFFUSE) {
-                  // get nearby photons
-                  float max_dist2;
-                  const std::vector<int> photon_indices =
-                      photonMap.queryKNearestPhotons(
-                          info_fg.surfaceInfo.position, nDensityEstimation,
-                          max_dist2);
-
-                  Li += f * cos *
-                        computeReflectedRadiance(-ray_fg.direction, info_fg,
-                                                 photon_indices, max_dist2) /
-                        pdf_dir;
-                }
-              }
+              Li += computeIndirectIllumination(scene, -ray.direction, info,
+                                                sampler);
             }
             Li /= nFinalGathering;
 
