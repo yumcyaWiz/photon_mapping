@@ -89,7 +89,7 @@ class Mirror : public BxDF {
     wi = reflect(wo, Vec3(0, 1, 0));
     pdf = 1.0f;
 
-    return rho;
+    return rho / absCosTheta(wi);
   }
 };
 
