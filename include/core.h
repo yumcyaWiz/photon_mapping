@@ -16,6 +16,8 @@ constexpr float PI_INV = 1.0f / PI;
 constexpr float PI_MUL_2_INV = 1.0f / PI_MUL_2;
 constexpr float PI_MUL_4_INV = 1.0f / PI_MUL_4;
 
+constexpr float RAY_EPS = 1e-5f;
+
 inline float rad2deg(float rad) { return 180.0f * rad / PI; }
 inline float deg2rad(float deg) { return deg / 180.0f * PI; }
 
@@ -143,7 +145,7 @@ inline Vec3 sphericalToCartesian(float theta, float phi) {
 struct Ray {
   Vec3 origin;
   Vec3 direction;
-  static constexpr float tmin = 1e-5;
+  static constexpr float tmin = RAY_EPS;
   mutable float tmax = std::numeric_limits<float>::max();
 
   Ray() {}

@@ -120,9 +120,8 @@ class PhotonMapping : public Integrator {
         pdf_pos_light * r * r / std::abs(dot(-wi, light_surf.normal));
 
     // create shadow ray
-    constexpr float EPS = 0.001f;
     Ray ray_shadow(info.surfaceInfo.position, wi);
-    ray_shadow.tmax = r - EPS;
+    ray_shadow.tmax = r - RAY_EPS;
 
     // trace ray to the light
     IntersectInfo info_shadow;
