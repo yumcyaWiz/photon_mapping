@@ -17,9 +17,7 @@ minimal but extensible header only implementation of photon mapping in C++.
 
 ## Build
 
-CMake options.
-
-|Option|Description|
+|CMake option|Description|
 |:--|:--|
 |BUILD_TESTS|build tests|
 
