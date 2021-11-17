@@ -36,13 +36,14 @@ make
 |:--|:--|
 |`include/camera.h`|ray generation from camera|
 |`include/core.h`|math, basic data types|
-|`include/image.h`|image. PPM output is supported.|
+|`include/image.h`|image|
 |`include/integrator.h`|implement photon mapping, path tracing(for reference)|
-|`include/photon_map.`|implement photon map with kdtree|
+|`include/light.h`|area light object|
+|`include/photon_map.h`|implementation of photon map with kdtree|
 |`include/primitive.h`|primitive object|
 |`include/sampler.h`|random number generation, sampling utilities|
-|`include/scene.h`|scene object, implement ray-scene intersection|
-|`include/shape.h`|implement ray-primitive intersection, sampling a point on primitive|
+|`include/scene.h`|scene object. ray-scene intersection|
+|`include/shape.h`|shape object. ray-primitive intersection, sampling a point on the shape|
 
 ## References
 
