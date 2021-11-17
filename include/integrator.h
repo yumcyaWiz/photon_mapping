@@ -169,9 +169,8 @@ class PhotonMapping : public Integrator {
   }
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation,
-                bool directIlluminationLightSampling, bool finalGathering,
-                int maxDepth = 100)
+  PhotonMapping(int nPhotons, int nDensityEstimation, bool finalGathering,
+                int maxDepth)
       : nPhotons(nPhotons),
         nDensityEstimation(nDensityEstimation),
         finalGathering(finalGathering),
