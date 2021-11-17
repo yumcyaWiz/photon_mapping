@@ -5,7 +5,7 @@ minimal but extensible header only implementation of photon mapping in C++.
 ## Features
 
 * Direct illumination with explicit light sampling
-* Indirect illumination with Final gathering
+* Indirect illumination with final gathering
 * Reference integrator(Path tracing)
 
 ## Requirements
