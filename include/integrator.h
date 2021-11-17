@@ -76,7 +76,26 @@ class PhotonMapping : public Integrator {
   const int nPhotons;
   const int nDensityEstimation;
   const int maxDepth;
+  bool finalGathering;
+
   PhotonMap photonMap;
+
+  // compute reflected radiance with simple kernel
+  Vec3 computeReflectedRadiance(const Vec3& wo, const IntersectInfo& info,
+                                const std::vector<int>& photon_indices,
+                                float max_dist2) const {
+    Vec3 Lo;
+    for (const int photon_idx : photon_indices) {
+      const Photon& photon = photonMap.getIthPhoton(photon_idx);
+      const Vec3 f =
+          info.hitPrimitive->evaluateBxDF(wo, photon.wi, info.surfaceInfo);
+      Lo += f * photon.throughput;
+    }
+    if (photon_indices.size() > 0) {
+      Lo /= (nPhotons * PI * max_dist2);
+    }
+    return Lo;
+  }
 
  public:
   PhotonMapping(int nPhotons, int nDensityEstimation, int maxDepth = 100)
@@ -201,17 +220,9 @@ class PhotonMapping : public Integrator {
               photonMap.queryKNearestPhotons(info.surfaceInfo.position,
                                              nDensityEstimation, max_dist2);
 
-          // compute reflected radiance with simple kernel
-          Vec3 Lo;
-          for (const int photon_idx : photon_indices) {
-            const Photon& photon = photonMap.getIthPhoton(photon_idx);
-            const Vec3 f = info.hitPrimitive->evaluateBxDF(
-                -ray.direction, photon.wi, info.surfaceInfo);
-            Lo += f * photon.throughput;
-          }
-          Lo /= (nPhotons * PI * max_dist2);
-
-          return throughput * Lo;
+          return throughput * computeReflectedRadiance(-ray.direction, info,
+                                                       photon_indices,
+                                                       max_dist2);
         }
         // generate next ray
         else if (bxdf_type == BxDFType::SPECULAR) {
