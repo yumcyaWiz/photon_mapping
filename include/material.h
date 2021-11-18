@@ -7,6 +7,8 @@
 
 enum class BxDFType { DIFFUSE, SPECULAR };
 
+using DirectionPair = std::pair<Vec3, Vec3>;
+
 class BxDF {
  private:
   BxDFType type;
@@ -40,11 +42,22 @@ class BxDF {
     return f0 + (1.0f - f0) * pow5(1.0f - std::abs(cosThetaI));
   }
 
+  // get BxDF type
   BxDFType getType() const { return type; }
 
+  // evaluate BxDF
   virtual Vec3 evaluate(const Vec3& wo, const Vec3& wi) const = 0;
+
+  // sample direction
+  // pdf is set to be propotional to BxDF
   virtual Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
                                float& pdf) const = 0;
+
+  // sample all samplable direction
+  // NOTE: for specular only
+  // NOTE: used for drawing fresnel reflection at low number of samples
+  virtual std::vector<DirectionPair> sampleAllDirection(
+      const Vec3& wo) const = 0;
 };
 
 class Lambert : public BxDF {
@@ -70,6 +83,11 @@ class Lambert : public BxDF {
 
     return evaluate(wo, wi);
   }
+
+  std::vector<DirectionPair> sampleAllDirection(const Vec3& wo) const override {
+    std::vector<DirectionPair> ret;
+    return ret;
+  }
 };
 
 class Mirror : public BxDF {
@@ -90,6 +108,13 @@ class Mirror : public BxDF {
     pdf = 1.0f;
 
     return rho / absCosTheta(wi);
+  }
+
+  std::vector<DirectionPair> sampleAllDirection(const Vec3& wo) const override {
+    std::vector<DirectionPair> ret;
+    const Vec3 wi = reflect(wo, Vec3(0, 1, 0));
+    ret.emplace_back(wi, rho / absCosTheta(wi));
+    return ret;
   }
 };
 
@@ -146,6 +171,39 @@ class Glass : public BxDF {
         return rho / absCosTheta(wi);
       }
     }
+  }
+
+  std::vector<DirectionPair> sampleAllDirection(const Vec3& wo) const override {
+    std::vector<DirectionPair> ret;
+
+    // set appropriate ior, normal
+    float iorI, iorT;
+    Vec3 n;
+    if (wo[1] > 0) {
+      iorI = 1.0f;
+      iorT = ior;
+      n = Vec3(0, 1, 0);
+    } else {
+      iorI = ior;
+      iorT = 1.0f;
+      n = Vec3(0, -1, 0);
+    }
+
+    // fresnel reflectance
+    const float fr = fresnel(dot(wo, n), iorI, iorT);
+
+    // reflection
+    const Vec3 wr = reflect(wo, n);
+    ret.emplace_back(wr, fr * rho / absCosTheta(wr));
+
+    // refraction
+    Vec3 tr;
+    if (refract(wo, n, iorI, iorT, tr)) {
+      ret.emplace_back(tr, (1.0f - fr) * iorT * iorT / (iorI * iorI) * rho /
+                               absCosTheta(tr));
+    }
+
+    return ret;
   }
 };
 
