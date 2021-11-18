@@ -258,7 +258,6 @@ class PhotonMapping : public Integrator {
       for (int k = 0; k < maxDepth; ++k) {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
-          // if hitting diffuse surface, add photon to the photon array
           const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
           if (bxdf_type == BxDFType::DIFFUSE &&
               !info.hitPrimitive->hasAreaLight()) {
@@ -312,9 +311,9 @@ class PhotonMapping : public Integrator {
 
     // build caustics photon map
     if (finalGathering) {
-      // photon tracing
       photons.clear();
 
+      // photon tracing
       spdlog::info(
           "[PhotonMapping] tracing photons for building caustics photon map");
 #pragma omp parallel for
