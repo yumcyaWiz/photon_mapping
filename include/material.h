@@ -137,9 +137,9 @@ class Glass : public BxDF {
       if (refract(wo, n, iorI, iorT, tr)) {
         wi = tr;
         pdf = 1.0f;
-        return rho / absCosTheta(wi);
+        return iorT * iorT / (iorI * iorI) * rho / absCosTheta(wi);
       }
-      // 全反射の場合
+      // total reflection
       else {
         wi = reflect(wo, n);
         pdf = 1.0f;
