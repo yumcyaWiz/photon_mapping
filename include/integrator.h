@@ -249,6 +249,12 @@ class PhotonMapping : public Integrator {
           const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
           if (bxdf_type == BxDFType::DIFFUSE &&
               !info.hitPrimitive->hasAreaLight()) {
+            if (std::isnan(throughput[0]) || std::isnan(throughput[1]) ||
+                std::isnan(throughput[2])) {
+              spdlog::error("[PhotonMapping] photon throughput is NaN");
+              break;
+            }
+
             // TODO: remove lock to get more speed
 #pragma omp critical
             {
@@ -332,6 +338,12 @@ class PhotonMapping : public Integrator {
             const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
             if (prev_specular && bxdf_type == BxDFType::DIFFUSE &&
                 !info.hitPrimitive->hasAreaLight()) {
+              if (std::isnan(throughput[0]) || std::isnan(throughput[1]) ||
+                  std::isnan(throughput[2])) {
+                spdlog::error("[PhotonMapping] photon throughput is NaN");
+                break;
+              }
+
               // TODO: remove lock to get more speed
 #pragma omp critical
               {
@@ -406,15 +418,15 @@ class PhotonMapping : public Integrator {
                    computeRadianceWithPhotonMap(-ray.direction, info);
           } else {
             // compute direct illumination by explicit light sampling
-            Vec3 Ld =
+            const Vec3 Ld =
                 computeDirectIllumination(scene, -ray.direction, info, sampler);
 
             // compute caustics illumination with caustics photon map
-            Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
+            const Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
 
             // compute indirect illumination with final gathering
-            Vec3 Li = computeIndirectIllumination(scene, -ray.direction, info,
-                                                  sampler);
+            const Vec3 Li = computeIndirectIllumination(scene, -ray.direction,
+                                                        info, sampler);
 
             return throughput * (Ld + Lc + Li);
           }
