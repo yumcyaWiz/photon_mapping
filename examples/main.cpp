@@ -145,10 +145,10 @@ int main() {
   const int width = 512;
   const int height = 512;
   const int n_samples = 100;
-  const int n_photons = 1000000;
-  const int n_estimation_global = 100;
-  const float n_photons_caustics_multiplier = 2;
-  const int n_estimation_caustics = 100;
+  const int n_photons = 100000;
+  const int n_estimation_global = 50;
+  const float n_photons_caustics_multiplier = 10;
+  const int n_estimation_caustics = 50;
   const bool final_gathering = true;
   const int max_depth = 100;
   const Vec3 camPos(2.78, 2.73, -9);

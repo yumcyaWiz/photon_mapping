@@ -66,6 +66,16 @@ make
 
 ![](img/final_gathering_100.png)
 
+### Cornell box with mirror spheres
+
+|Parameter|Value|
+|:--|:--| 
+|number of photons|1000000|
+|number of nearest neighbors|100|
+|number of samples|100|
+
+![](img/pm_mirror_with_final_gathering_recursive_id.png)
+
 ## References
 
 * Jensen, Henrik Wann. Realistic image synthesis using photon mapping. AK Peters/crc Press, 2001.
