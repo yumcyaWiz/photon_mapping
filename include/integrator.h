@@ -192,6 +192,31 @@ class PhotonMapping : public Integrator {
     return Li;
   }
 
+  // sample initial ray from light and compute initial throughput
+  Ray sampleRayFromLight(const Scene& scene, Sampler& sampler,
+                         Vec3& throughput) {
+    // sample light
+    float light_choose_pdf;
+    const std::shared_ptr<Light> light =
+        scene.sampleLight(sampler, light_choose_pdf);
+
+    // sample point on light
+    float light_pos_pdf;
+    const SurfaceInfo light_surf = light->samplePoint(sampler, light_pos_pdf);
+
+    // sample direction on light
+    float light_dir_pdf;
+    const Vec3 dir = light->sampleDirection(light_surf, sampler, light_dir_pdf);
+
+    // spawn ray
+    Ray ray(light_surf.position, dir);
+    throughput = light->Le(light_surf, dir) /
+                 (light_choose_pdf * light_pos_pdf * light_dir_pdf) *
+                 std::abs(dot(dir, light_surf.normal));
+
+    return ray;
+  }
+
  public:
   PhotonMapping(int nPhotonsGlobal, int nEstimationGlobal,
                 float nPhotonsCausticsMultiplier, int nEstimationCaustics,
@@ -223,26 +248,9 @@ class PhotonMapping : public Integrator {
     for (int i = 0; i < nPhotonsGlobal; ++i) {
       auto& sampler_per_thread = *samplers[omp_get_thread_num()];
 
-      // sample light
-      float light_choose_pdf;
-      const std::shared_ptr<Light> light =
-          scene.sampleLight(sampler_per_thread, light_choose_pdf);
-
-      // sample point on light
-      float light_pos_pdf;
-      const SurfaceInfo light_surf =
-          light->samplePoint(sampler_per_thread, light_pos_pdf);
-
-      // sample direction on light
-      float light_dir_pdf;
-      const Vec3 dir =
-          light->sampleDirection(light_surf, sampler_per_thread, light_dir_pdf);
-
-      // spawn ray
-      Ray ray(light_surf.position, dir);
-      Vec3 throughput = light->Le(light_surf, dir) /
-                        (light_choose_pdf * light_pos_pdf * light_dir_pdf) *
-                        std::abs(dot(dir, light_surf.normal));
+      // sample initial ray from light and set initial throughput
+      Vec3 throughput;
+      Ray ray = sampleRayFromLight(scene, sampler_per_thread, throughput);
 
       // trace photons
       // whener hitting diffuse surface, add photon to the photon array
@@ -313,26 +321,9 @@ class PhotonMapping : public Integrator {
       for (int i = 0; i < nPhotonsCaustics; ++i) {
         auto& sampler_per_thread = *samplers[omp_get_thread_num()];
 
-        // sample light
-        float light_choose_pdf;
-        const std::shared_ptr<Light> light =
-            scene.sampleLight(sampler_per_thread, light_choose_pdf);
-
-        // sample point on light
-        float light_pos_pdf;
-        const SurfaceInfo light_surf =
-            light->samplePoint(sampler_per_thread, light_pos_pdf);
-
-        // sample direction on light
-        float light_dir_pdf;
-        const Vec3 dir = light->sampleDirection(light_surf, sampler_per_thread,
-                                                light_dir_pdf);
-
-        // spawn ray
-        Ray ray(light_surf.position, dir);
-        Vec3 throughput = light->Le(light_surf, dir) /
-                          (light_choose_pdf * light_pos_pdf * light_dir_pdf) *
-                          std::abs(dot(dir, light_surf.normal));
+        // sample initial ray from light and set initial throughput
+        Vec3 throughput;
+        Ray ray = sampleRayFromLight(scene, sampler_per_thread, throughput);
 
         // when hitting diffuse surface after specular, add photon to the photon
         // array
