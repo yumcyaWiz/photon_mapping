@@ -17,7 +17,7 @@ class Integrator {
 };
 
 // implementation of path tracing
-// for reference purpose
+// NOTE: for reference purpose
 class PathTracing : public Integrator {
  private:
   const int maxDepth;
@@ -165,10 +165,11 @@ class PhotonMapping : public Integrator {
     return Ld;
   }
 
-  // compute indirect illumination with final gathering
-  Vec3 computeIndirectIllumination(const Scene& scene, const Vec3& wo,
-                                   const IntersectInfo& info,
-                                   Sampler& sampler) const {
+  Vec3 computeIndirectIlluminationRecursive(const Scene& scene, const Vec3& wo,
+                                            const IntersectInfo& info,
+                                            Sampler& sampler, int depth) const {
+    if (depth >= maxDepth) return Vec3(0);
+
     Vec3 Li;
 
     // sample direction by BxDF
@@ -182,14 +183,32 @@ class PhotonMapping : public Integrator {
     Ray ray_fg(info.surfaceInfo.position, dir);
     IntersectInfo info_fg;
     if (scene.intersect(ray_fg, info_fg)) {
-      if (info_fg.hitPrimitive->getBxDFType() == BxDFType::DIFFUSE) {
+      const BxDFType bxdf_type = info_fg.hitPrimitive->getBxDFType();
+
+      // when hitting diffuse, compute radiance with photon map
+      if (bxdf_type == BxDFType::DIFFUSE) {
         Li += f * cos *
               computeRadianceWithPhotonMap(-ray_fg.direction, info_fg) /
+              pdf_dir;
+      }
+      // when hitting specular, recursively call this function
+      // NOTE: to include the path like LSDSDE
+      else if (bxdf_type == BxDFType::SPECULAR) {
+        Li += f * cos *
+              computeIndirectIlluminationRecursive(
+                  scene, -ray_fg.direction, info_fg, sampler, depth + 1) /
               pdf_dir;
       }
     }
 
     return Li;
+  }
+
+  // compute indirect illumination with final gathering
+  Vec3 computeIndirectIllumination(const Scene& scene, const Vec3& wo,
+                                   const IntersectInfo& info,
+                                   Sampler& sampler) const {
+    return computeIndirectIlluminationRecursive(scene, wo, info, sampler, 0);
   }
 
   // sample initial ray from light and compute initial throughput
@@ -230,6 +249,7 @@ class PhotonMapping : public Integrator {
 
   const PhotonMap* getPhotonMapPtr() const { return &globalPhotonMap; }
 
+  // photon tracing and build photon map
   void build(const Scene& scene, Sampler& sampler) override {
     std::vector<Photon> photons;
 
@@ -345,6 +365,9 @@ class PhotonMapping : public Integrator {
                 photons.emplace_back(throughput, info.surfaceInfo.position,
                                      -ray.direction);
               }
+
+              // break after the first diffuse surface
+              break;
             }
 
             prev_specular = (bxdf_type == BxDFType::SPECULAR);
