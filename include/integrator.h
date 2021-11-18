@@ -446,63 +446,6 @@ class PhotonMapping : public Integrator {
     }
     return Vec3(0);
   }
-
-  /*
-    Vec3 integrate(const Ray& ray, const Scene& scene,
-                   Sampler& sampler) const override {
-      IntersectInfo info;
-      if (scene.intersect(ray, info)) {
-        // when directly hitting light, return Le
-        if (info.hitPrimitive->hasAreaLight()) {
-          return info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
-        }
-
-        const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
-
-        // if hitting diffuse surface, computed reflected radiance with photon
-  map if (bxdf_type == BxDFType::DIFFUSE) { if (!finalGathering) { return
-  computeRadianceWithPhotonMap(-ray.direction, info); } else {
-            // compute direct illumination by explicit light sampling
-            const Vec3 Ld =
-                computeDirectIllumination(scene, -ray.direction, info, sampler);
-
-            // compute caustics illumination with caustics photon map
-            const Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
-
-            // compute indirect illumination with final gathering
-            const Vec3 Li =
-                computeIndirectIllumination(scene, -ray.direction, info,
-  sampler);
-
-            return (Ld + Lc + Li);
-          }
-        }
-        // if hitting specular surface, generate next ray and continue
-        // raytracing
-        else if (bxdf_type == BxDFType::SPECULAR) {
-          // sample direction by BxDF
-          Vec3 dir;
-          float pdf_dir;
-          const Vec3 f = info.hitPrimitive->sampleBxDF(
-              -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
-
-          // recursively raytrace
-          Ray next_ray(info.surfaceInfo.position, dir);
-          const Vec3 throughput =
-              f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
-          return throughput * integrate(next_ray, scene, sampler);
-        } else {
-          spdlog::error("[PhotonMapping] invalid BxDF type");
-          return Vec3(0);
-        }
-      } else {
-        // ray goes out to the sky
-        return Vec3(0);
-      }
-
-      return Vec3(0);
-    }
-  */
 };
 
 #endif
