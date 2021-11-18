@@ -73,8 +73,10 @@ class PathTracing : public Integrator {
 // implementation of photon mapping
 class PhotonMapping : public Integrator {
  private:
-  const int nPhotons;
-  const int nDensityEstimation;
+  const int nPhotonsGlobal;
+  const int nEstimationGlobal;
+  const int nPhotonsCaustics;
+  const int nEstimationCaustics;
   const int maxDepth;
   bool finalGathering;
 
@@ -88,7 +90,7 @@ class PhotonMapping : public Integrator {
     float max_dist2;
     const std::vector<int> photon_indices =
         globalPhotonMap.queryKNearestPhotons(info.surfaceInfo.position,
-                                             nDensityEstimation, max_dist2);
+                                             nEstimationGlobal, max_dist2);
 
     Vec3 Lo;
     for (const int photon_idx : photon_indices) {
@@ -98,7 +100,7 @@ class PhotonMapping : public Integrator {
       Lo += f * photon.throughput;
     }
     if (photon_indices.size() > 0) {
-      Lo /= (nPhotons * PI * max_dist2);
+      Lo /= (nPhotonsGlobal * PI * max_dist2);
     }
     return Lo;
   }
@@ -110,7 +112,7 @@ class PhotonMapping : public Integrator {
     float max_dist2;
     const std::vector<int> photon_indices =
         causticsPhotonMap.queryKNearestPhotons(info.surfaceInfo.position,
-                                               nDensityEstimation, max_dist2);
+                                               nEstimationGlobal, max_dist2);
 
     Vec3 Lo;
     for (const int photon_idx : photon_indices) {
@@ -120,7 +122,7 @@ class PhotonMapping : public Integrator {
       Lo += f * photon.throughput;
     }
     if (photon_indices.size() > 0) {
-      Lo /= (nPhotons * PI * max_dist2);
+      Lo /= (nPhotonsCaustics * PI * max_dist2);
     }
 
     return Lo;
@@ -191,10 +193,13 @@ class PhotonMapping : public Integrator {
   }
 
  public:
-  PhotonMapping(int nPhotons, int nDensityEstimation, bool finalGathering,
-                int maxDepth)
-      : nPhotons(nPhotons),
-        nDensityEstimation(nDensityEstimation),
+  PhotonMapping(int nPhotonsGlobal, int nEstimationGlobal,
+                float nPhotonsCausticsMultiplier, int nEstimationCaustics,
+                bool finalGathering, int maxDepth)
+      : nPhotonsGlobal(nPhotonsGlobal),
+        nEstimationGlobal(nEstimationGlobal),
+        nPhotonsCaustics(nPhotonsGlobal * nPhotonsCausticsMultiplier),
+        nEstimationCaustics(nEstimationCaustics),
         finalGathering(finalGathering),
         maxDepth(maxDepth) {}
 
@@ -215,7 +220,7 @@ class PhotonMapping : public Integrator {
     spdlog::info(
         "[PhotonMapping] tracing photons for building global photon map");
 #pragma omp parallel for
-    for (int i = 0; i < nPhotons; ++i) {
+    for (int i = 0; i < nPhotonsGlobal; ++i) {
       auto& sampler_per_thread = *samplers[omp_get_thread_num()];
 
       // sample light
@@ -305,7 +310,7 @@ class PhotonMapping : public Integrator {
       spdlog::info(
           "[PhotonMapping] tracing photons for building caustics photon map");
 #pragma omp parallel for
-      for (int i = 0; i < nPhotons; ++i) {
+      for (int i = 0; i < nPhotonsCaustics; ++i) {
         auto& sampler_per_thread = *samplers[omp_get_thread_num()];
 
         // sample light
@@ -350,12 +355,9 @@ class PhotonMapping : public Integrator {
                 photons.emplace_back(throughput, info.surfaceInfo.position,
                                      -ray.direction);
               }
-              break;
             }
 
-            if (bxdf_type == BxDFType::SPECULAR) {
-              prev_specular = true;
-            }
+            prev_specular = (bxdf_type == BxDFType::SPECULAR);
 
             // russian roulette
             if (k > 0) {

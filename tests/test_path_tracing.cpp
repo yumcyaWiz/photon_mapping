@@ -122,27 +122,10 @@ void cornellboxGlassScene(Scene& scene) {
   const auto backWall = std::make_shared<Plane>(
       Vec3(0, 0, 5.592), Vec3(0, 5.488, 0), Vec3(5.56, 0, 0));
 
-  const auto shortBox1 = std::make_shared<Plane>(
-      Vec3(1.3, 1.65, 0.65), Vec3(-0.48, 0, 1.6), Vec3(1.6, 0, 0.49));
-  const auto shortBox2 = std::make_shared<Plane>(
-      Vec3(2.9, 0, 1.14), Vec3(0, 1.65, 0), Vec3(-0.5, 0, 1.58));
-  const auto shortBox3 = std::make_shared<Plane>(
-      Vec3(1.3, 0, 0.65), Vec3(0, 1.65, 0), Vec3(1.6, 0, 0.49));
-  const auto shortBox4 = std::make_shared<Plane>(
-      Vec3(0.82, 0, 2.25), Vec3(0, 1.65, 0), Vec3(0.48, 0, -1.6));
-  const auto shortBox5 = std::make_shared<Plane>(
-      Vec3(2.4, 0, 2.72), Vec3(0, 1.65, 0), Vec3(-1.58, 0, -0.47));
-
-  const auto tallBox1 = std::make_shared<Plane>(
-      Vec3(4.23, 3.30, 2.47), Vec3(-1.58, 0, 0.49), Vec3(0.49, 0, 1.59));
-  const auto tallBox2 = std::make_shared<Plane>(
-      Vec3(4.23, 0, 2.47), Vec3(0, 3.3, 0), Vec3(0.49, 0, 1.59));
-  const auto tallBox3 = std::make_shared<Plane>(
-      Vec3(4.72, 0, 4.06), Vec3(0, 3.3, 0), Vec3(-1.58, 0, 0.5));
-  const auto tallBox4 = std::make_shared<Plane>(
-      Vec3(3.14, 0, 4.56), Vec3(0, 3.3, 0), Vec3(-0.49, 0, -1.6));
-  const auto tallBox5 = std::make_shared<Plane>(
-      Vec3(2.65, 0, 2.96), Vec3(0, 3.3, 0), Vec3(1.58, 0, -0.49));
+  const auto smallSphere =
+      std::make_shared<Sphere>(Vec3(1.5f, 1.0f, 1.5), 1.0f);
+  const auto bigSphere =
+      std::make_shared<Sphere>(Vec3(3.75f, 1.5f, 3.5f), 1.5f);
 
   const auto light_shape = std::make_shared<Plane>(
       Vec3(3.43, 5.486, 2.27), Vec3(0, 0, 1.05), Vec3(-1.3, 0, 0));
@@ -153,16 +136,8 @@ void cornellboxGlassScene(Scene& scene) {
   scene.addPrimitive(Primitive(leftWall, green));
   scene.addPrimitive(Primitive(ceil, white));
   scene.addPrimitive(Primitive(backWall, white));
-  scene.addPrimitive(Primitive(shortBox1, glass));
-  scene.addPrimitive(Primitive(shortBox2, glass));
-  scene.addPrimitive(Primitive(shortBox3, glass));
-  scene.addPrimitive(Primitive(shortBox4, glass));
-  scene.addPrimitive(Primitive(shortBox5, glass));
-  scene.addPrimitive(Primitive(tallBox1, glass));
-  scene.addPrimitive(Primitive(tallBox2, glass));
-  scene.addPrimitive(Primitive(tallBox3, glass));
-  scene.addPrimitive(Primitive(tallBox4, glass));
-  scene.addPrimitive(Primitive(tallBox5, glass));
+  scene.addPrimitive(Primitive(smallSphere, glass));
+  scene.addPrimitive(Primitive(bigSphere, glass));
   scene.addPrimitive(Primitive(light_shape, white, light));
 }
 
