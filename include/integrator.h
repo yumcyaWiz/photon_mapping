@@ -236,6 +236,91 @@ class PhotonMapping : public Integrator {
     return ray;
   }
 
+  Vec3 integrateRecursive(const Ray& ray, const Scene& scene, Sampler& sampler,
+                          int depth) const {
+    if (depth >= maxDepth) return Vec3(0);
+
+    IntersectInfo info;
+    if (scene.intersect(ray, info)) {
+      // when directly hitting light
+      if (info.hitPrimitive->hasAreaLight()) {
+        return info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
+      }
+
+      const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
+
+      // if hitting diffuse surface, computed reflected radiance with photon
+      // map
+      if (bxdf_type == BxDFType::DIFFUSE) {
+        if (!finalGathering) {
+          return computeRadianceWithPhotonMap(-ray.direction, info);
+        } else {
+          // compute direct illumination by explicit light sampling
+          const Vec3 Ld =
+              computeDirectIllumination(scene, -ray.direction, info, sampler);
+
+          // compute caustics illumination with caustics photon map
+          const Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
+
+          // compute indirect illumination with final gathering
+          const Vec3 Li =
+              computeIndirectIllumination(scene, -ray.direction, info, sampler);
+
+          return (Ld + Lc + Li);
+        }
+      }
+      // if hitting specular surface, generate next ray and continue
+      // raytracing
+      else if (bxdf_type == BxDFType::SPECULAR) {
+        if (depth >= 3) {
+          // sample direction by BxDF
+          Vec3 dir;
+          float pdf_dir;
+          const Vec3 f = info.hitPrimitive->sampleBxDF(
+              -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
+
+          // recursively raytrace
+          const Ray next_ray(info.surfaceInfo.position, dir);
+          const Vec3 throughput =
+              f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
+
+          return throughput *
+                 integrateRecursive(next_ray, scene, sampler, depth + 1);
+        }
+        // sample all direction at shallow depth
+        // NOTE: to prevent noise at fresnel reflection
+        else {
+          // sample all direction
+          const std::vector<DirectionPair> dir_pairs =
+              info.hitPrimitive->sampleAllBxDF(-ray.direction,
+                                               info.surfaceInfo);
+
+          // recursively raytrace
+          Vec3 Lo;
+          for (const auto& dp : dir_pairs) {
+            const Vec3 dir = dp.first;
+            const Vec3 f = dp.second;
+
+            const Ray next_ray(info.surfaceInfo.position, dir);
+            const Vec3 throughput =
+                f * std::abs(dot(dir, info.surfaceInfo.normal));
+
+            Lo += throughput *
+                  integrateRecursive(next_ray, scene, sampler, depth + 1);
+          }
+          return Lo;
+        }
+      } else {
+        spdlog::error("[PhotonMapping] invalid BxDF type");
+        return Vec3(0);
+      }
+    } else {
+      // ray goes out to the sky
+      return Vec3(0);
+    }
+    return Vec3(0);
+  }
+
  public:
   PhotonMapping(int nPhotonsGlobal, int nEstimationGlobal,
                 float nPhotonsCausticsMultiplier, int nEstimationCaustics,
@@ -262,8 +347,7 @@ class PhotonMapping : public Integrator {
 
     // build global photon map
     // photon tracing
-    spdlog::info(
-        "[PhotonMapping] tracing photons for building global photon map");
+    spdlog::info("[PhotonMapping] tracing photons to build global photon map");
 #pragma omp parallel for
     for (int i = 0; i < nPhotonsGlobal; ++i) {
       auto& sampler_per_thread = *samplers[omp_get_thread_num()];
@@ -276,17 +360,21 @@ class PhotonMapping : public Integrator {
       // whener hitting diffuse surface, add photon to the photon array
       // recursively tracing photon with russian roulette
       for (int k = 0; k < maxDepth; ++k) {
+        if (std::isnan(throughput[0]) || std::isnan(throughput[1]) ||
+            std::isnan(throughput[2])) {
+          spdlog::error("[PhotonMapping] photon throughput is NaN");
+          break;
+        } else if (throughput[0] < 0 || throughput[1] < 0 ||
+                   throughput[2] < 0) {
+          spdlog::error("[PhotonMapping] photon throughput is minus");
+          break;
+        }
+
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
           if (bxdf_type == BxDFType::DIFFUSE &&
               !info.hitPrimitive->hasAreaLight()) {
-            if (std::isnan(throughput[0]) || std::isnan(throughput[1]) ||
-                std::isnan(throughput[2])) {
-              spdlog::error("[PhotonMapping] photon throughput is NaN");
-              break;
-            }
-
             // TODO: remove lock to get more speed
 #pragma omp critical
             {
@@ -335,7 +423,7 @@ class PhotonMapping : public Integrator {
 
       // photon tracing
       spdlog::info(
-          "[PhotonMapping] tracing photons for building caustics photon map");
+          "[PhotonMapping] tracing photons to build caustics photon map");
 #pragma omp parallel for
       for (int i = 0; i < nPhotonsCaustics; ++i) {
         auto& sampler_per_thread = *samplers[omp_get_thread_num()];
@@ -348,17 +436,21 @@ class PhotonMapping : public Integrator {
         // array
         bool prev_specular = false;
         for (int k = 0; k < maxDepth; ++k) {
+          if (std::isnan(throughput[0]) || std::isnan(throughput[1]) ||
+              std::isnan(throughput[2])) {
+            spdlog::error("[PhotonMapping] photon throughput is NaN");
+            break;
+          } else if (throughput[0] < 0 || throughput[1] < 0 ||
+                     throughput[2] < 0) {
+            spdlog::error("[PhotonMapping] photon throughput is minus");
+            break;
+          }
+
           IntersectInfo info;
           if (scene.intersect(ray, info)) {
             const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
             if (prev_specular && bxdf_type == BxDFType::DIFFUSE &&
                 !info.hitPrimitive->hasAreaLight()) {
-              if (std::isnan(throughput[0]) || std::isnan(throughput[1]) ||
-                  std::isnan(throughput[2])) {
-                spdlog::error("[PhotonMapping] photon throughput is NaN");
-                break;
-              }
-
               // TODO: remove lock to get more speed
 #pragma omp critical
               {
@@ -410,64 +502,7 @@ class PhotonMapping : public Integrator {
 
   Vec3 integrate(const Ray& ray_in, const Scene& scene,
                  Sampler& sampler) const override {
-    Ray ray = ray_in;
-    Vec3 throughput(1, 1, 1);
-
-    // recursively raytrace until hitting diffuse surface
-    for (int k = 0; k < maxDepth; ++k) {
-      IntersectInfo info;
-      if (scene.intersect(ray, info)) {
-        // when directly hitting light, break
-        if (info.hitPrimitive->hasAreaLight()) {
-          return throughput *
-                 info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
-        }
-
-        const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
-
-        // if hitting diffuse surface, computed reflected radiance with photon
-        // map
-        if (bxdf_type == BxDFType::DIFFUSE) {
-          if (!finalGathering) {
-            return throughput *
-                   computeRadianceWithPhotonMap(-ray.direction, info);
-          } else {
-            // compute direct illumination by explicit light sampling
-            const Vec3 Ld =
-                computeDirectIllumination(scene, -ray.direction, info, sampler);
-
-            // compute caustics illumination with caustics photon map
-            const Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
-
-            // compute indirect illumination with final gathering
-            const Vec3 Li = computeIndirectIllumination(scene, -ray.direction,
-                                                        info, sampler);
-
-            return throughput * (Ld + Lc + Li);
-          }
-        }
-        // if hitting specular surface, generate next ray and continue
-        // raytracing
-        else if (bxdf_type == BxDFType::SPECULAR) {
-          // sample direction by BxDF
-          Vec3 dir;
-          float pdf_dir;
-          const Vec3 f = info.hitPrimitive->sampleBxDF(
-              -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
-
-          // update throughput and ray
-          throughput *=
-              f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
-          ray = Ray(info.surfaceInfo.position, dir);
-        } else {
-          spdlog::error("[PhotonMapping] invalid BxDF type");
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-    return Vec3(0);
+    return integrateRecursive(ray_in, scene, sampler, 0);
   }
 };
 

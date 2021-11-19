@@ -64,6 +64,24 @@ class Primitive {
 
     return f;
   }
+
+  std::vector<DirectionPair> sampleAllBxDF(const Vec3& wo,
+                                           const SurfaceInfo& surfInfo) const {
+    // world to local transform
+    const Vec3 wo_l =
+        worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
+
+    // sample all direction in tangent space
+    std::vector<DirectionPair> dir_pairs = bxdf->sampleAllDirection(wo_l);
+
+    // local to world transform
+    for (auto& dp : dir_pairs) {
+      dp.first =
+          localToWorld(dp.first, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
+    }
+
+    return dir_pairs;
+  }
 };
 
 #endif

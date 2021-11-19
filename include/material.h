@@ -39,7 +39,7 @@ class BxDF {
     const float f0 =
         (iorI - iorT) * (iorI - iorT) / ((iorI + iorT) * (iorI + iorT));
     const auto pow5 = [](float x) { return x * x * x * x * x; };
-    return f0 + (1.0f - f0) * pow5(1.0f - std::abs(cosThetaI));
+    return f0 + (1.0f - f0) * pow5(std::max(1.0f - std::abs(cosThetaI), 0.0f));
   }
 
   // get BxDF type
@@ -199,8 +199,10 @@ class Glass : public BxDF {
     // refraction
     Vec3 tr;
     if (refract(wo, n, iorI, iorT, tr)) {
-      ret.emplace_back(tr, (1.0f - fr) * iorT * iorT / (iorI * iorI) * rho /
-                               absCosTheta(tr));
+      ret.emplace_back(tr, std::max((1.0f - fr), 0.0f) * (iorT * iorT) /
+                               (iorI * iorI) * rho / absCosTheta(tr));
+    } else {
+      ret[0].second = rho / absCosTheta(wr);
     }
 
     return ret;
