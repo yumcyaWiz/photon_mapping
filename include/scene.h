@@ -198,8 +198,9 @@ class Scene {
         }
 
         // create triangle
-        this->triangles.emplace_back(&this->vertices, &this->indices,
-                                     &this->normals, &this->texcoords, f);
+        this->triangles.emplace_back(this->vertices.data(),
+                                     this->indices.data(), this->normals.data(),
+                                     this->texcoords.data(), f);
 
         // add bxdf
         // TODO: remove duplicate
@@ -223,7 +224,7 @@ class Scene {
         }
 
         // add primitive
-        primitives.emplace_back(this->triangles[this->triangles.size() - 1],
+        primitives.emplace_back(&this->triangles[this->triangles.size() - 1],
                                 this->bxdfs[this->bxdfs.size() - 1],
                                 this->lights[this->lights.size() - 1]);
 
