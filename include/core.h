@@ -26,14 +26,14 @@ struct Vec2 {
   T v[2];
 
   Vec2() { v[0] = v[1] = 0; }
-  Vec2(float x) { v[0] = v[1] = x; }
-  Vec2(float x, float y) {
+  Vec2(T x) { v[0] = v[1] = x; }
+  Vec2(T x, T y) {
     v[0] = x;
     v[1] = y;
   }
 
-  float operator[](int i) const { return v[i]; }
-  float& operator[](int i) { return v[i]; }
+  T operator[](int i) const { return v[i]; }
+  T& operator[](int i) { return v[i]; }
 
   Vec2 operator-() const { return Vec2(-v[0], -v[1]); }
 
@@ -113,38 +113,39 @@ using Vec2f = Vec2<float>;
 using Vec2i = Vec2<int>;
 using Vec2ui = Vec2<uint32_t>;
 
-struct Vec3f {
-  float v[3];
+template <typename T>
+struct Vec3 {
+  T v[3];
 
   // implement Point
   static constexpr int dim = 3;
 
-  Vec3f() { v[0] = v[1] = v[2] = 0; }
-  Vec3f(float x) { v[0] = v[1] = v[2] = x; }
-  Vec3f(float x, float y, float z) {
+  Vec3() { v[0] = v[1] = v[2] = 0; }
+  Vec3(T x) { v[0] = v[1] = v[2] = x; }
+  Vec3(T x, T y, T z) {
     v[0] = x;
     v[1] = y;
     v[2] = z;
   }
 
-  float operator[](int i) const { return v[i]; }
-  float& operator[](int i) { return v[i]; }
+  T operator[](int i) const { return v[i]; }
+  T& operator[](int i) { return v[i]; }
 
-  Vec3f operator-() const { return Vec3f(-v[0], -v[1], -v[2]); }
+  Vec3 operator-() const { return Vec3(-v[0], -v[1], -v[2]); }
 
-  Vec3f& operator+=(const Vec3f& v) {
+  Vec3& operator+=(const Vec3& v) {
     for (int i = 0; i < 3; ++i) {
       this->v[i] += v[i];
     }
     return *this;
   }
-  Vec3f& operator*=(const Vec3f& v) {
+  Vec3& operator*=(const Vec3& v) {
     for (int i = 0; i < 3; ++i) {
       this->v[i] *= v[i];
     }
     return *this;
   }
-  Vec3f& operator/=(const Vec3f& v) {
+  Vec3& operator/=(const Vec3& v) {
     for (int i = 0; i < 3; ++i) {
       this->v[i] /= v[i];
     }
@@ -152,50 +153,72 @@ struct Vec3f {
   }
 };
 
-inline Vec3f operator+(const Vec3f& v1, const Vec3f& v2) {
-  return Vec3f(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]);
+template <typename T>
+inline Vec3<T> operator+(const Vec3<T>& v1, const Vec3<T>& v2) {
+  return Vec3<T>(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]);
 }
-inline Vec3f operator+(const Vec3f& v1, float k) {
-  return Vec3f(v1[0] + k, v1[1] + k, v1[2] + k);
+template <typename T>
+inline Vec3<T> operator+(const Vec3<T>& v1, float k) {
+  return Vec3<T>(v1[0] + k, v1[1] + k, v1[2] + k);
 }
-inline Vec3f operator+(float k, const Vec3f& v2) { return v2 + k; }
-
-inline Vec3f operator-(const Vec3f& v1, const Vec3f& v2) {
-  return Vec3f(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
-}
-inline Vec3f operator-(const Vec3f& v1, float k) {
-  return Vec3f(v1[0] - k, v1[1] - k, v1[2] - k);
-}
-inline Vec3f operator-(float k, const Vec3f& v2) {
-  return Vec3f(k - v2[0], k - v2[1], k - v2[2]);
+template <typename T>
+inline Vec3<T> operator+(float k, const Vec3<T>& v2) {
+  return v2 + k;
 }
 
-inline Vec3f operator*(const Vec3f& v1, const Vec3f& v2) {
-  return Vec3f(v1[0] * v2[0], v1[1] * v2[1], v1[2] * v2[2]);
+template <typename T>
+inline Vec3<T> operator-(const Vec3<T>& v1, const Vec3<T>& v2) {
+  return Vec3<T>(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
 }
-inline Vec3f operator*(const Vec3f& v1, float k) {
-  return Vec3f(v1[0] * k, v1[1] * k, v1[2] * k);
+template <typename T>
+inline Vec3<T> operator-(const Vec3<T>& v1, float k) {
+  return Vec3<T>(v1[0] - k, v1[1] - k, v1[2] - k);
 }
-inline Vec3f operator*(float k, const Vec3f& v2) { return v2 * k; }
-
-inline Vec3f operator/(const Vec3f& v1, const Vec3f& v2) {
-  return Vec3f(v1[0] / v2[0], v1[1] / v2[1], v1[2] / v2[2]);
-}
-inline Vec3f operator/(const Vec3f& v1, float k) {
-  return Vec3f(v1[0] / k, v1[1] / k, v1[2] / k);
-}
-inline Vec3f operator/(float k, const Vec3f& v2) {
-  return Vec3f(k / v2[0], k / v2[1], k / v2[2]);
+template <typename T>
+inline Vec3<T> operator-(float k, const Vec3<T>& v2) {
+  return Vec3<T>(k - v2[0], k - v2[1], k - v2[2]);
 }
 
-inline float dot(const Vec3f& v1, const Vec3f& v2) {
+template <typename T>
+inline Vec3<T> operator*(const Vec3<T>& v1, const Vec3<T>& v2) {
+  return Vec3<T>(v1[0] * v2[0], v1[1] * v2[1], v1[2] * v2[2]);
+}
+template <typename T>
+inline Vec3<T> operator*(const Vec3<T>& v1, float k) {
+  return Vec3<T>(v1[0] * k, v1[1] * k, v1[2] * k);
+}
+template <typename T>
+inline Vec3<T> operator*(float k, const Vec3<T>& v2) {
+  return v2 * k;
+}
+
+template <typename T>
+inline Vec3<T> operator/(const Vec3<T>& v1, const Vec3<T>& v2) {
+  return Vec3<T>(v1[0] / v2[0], v1[1] / v2[1], v1[2] / v2[2]);
+}
+template <typename T>
+inline Vec3<T> operator/(const Vec3<T>& v1, float k) {
+  return Vec3<T>(v1[0] / k, v1[1] / k, v1[2] / k);
+}
+template <typename T>
+inline Vec3<T> operator/(float k, const Vec3<T>& v2) {
+  return Vec3<T>(k / v2[0], k / v2[1], k / v2[2]);
+}
+
+template <typename T>
+inline T dot(const Vec3<T>& v1, const Vec3<T>& v2) {
   return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
 
-inline Vec3f cross(const Vec3f& v1, const Vec3f& v2) {
-  return Vec3f(v1[1] * v2[2] - v1[2] * v2[1], v1[2] * v2[0] - v1[0] * v2[2],
-               v1[0] * v2[1] - v1[1] * v2[0]);
+template <typename T>
+inline Vec3<T> cross(const Vec3<T>& v1, const Vec3<T>& v2) {
+  return Vec3<T>(v1[1] * v2[2] - v1[2] * v2[1], v1[2] * v2[0] - v1[0] * v2[2],
+                 v1[0] * v2[1] - v1[1] * v2[0]);
 }
+
+using Vec3f = Vec3<float>;
+using Vec3i = Vec3<int>;
+using Vec3ui = Vec3<uint32_t>;
 
 inline float length(const Vec3f& v) { return std::sqrt(dot(v, v)); }
 inline float length2(const Vec3f& v) { return dot(v, v); }
