@@ -3,7 +3,7 @@
 
 #include "core.h"
 #include "sampler.h"
-#include "shape.h"
+#include "triangle.h"
 
 class Light {
  public:

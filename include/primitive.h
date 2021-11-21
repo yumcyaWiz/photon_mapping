@@ -5,7 +5,7 @@
 
 #include "light.h"
 #include "material.h"
-#include "shape.h"
+#include "triangle.h"
 
 class Primitive {
  private:
