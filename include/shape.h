@@ -23,7 +23,7 @@ class Triangle {
         texcoords(texcoords),
         faceID(faceID) {
     // compute surface area
-    const Vec3ui vidx = getIndices(faceID);
+    const Vec3ui vidx = getIndices();
     const Vec3f p1 = getVertexPosition(vidx[0]);
     const Vec3f p2 = getVertexPosition(vidx[1]);
     const Vec3f p3 = getVertexPosition(vidx[2]);
@@ -47,15 +47,15 @@ class Triangle {
     return Vec2f(texcoords[2 * vertexID + 0], texcoords[2 * vertexID + 1]);
   }
 
-  // return vertex indices of specified face
-  Vec3ui getIndices(uint32_t faceID) const {
+  // return vertex indices
+  Vec3ui getIndices() const {
     return Vec3ui(indices[3 * faceID + 0], indices[3 * faceID + 1],
                   indices[3 * faceID + 2]);
   }
 
-  // compute normal of specified face, barycentric
-  Vec3f getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
-    const Vec3ui vidx = getIndices(faceID);
+  // compute face normal at given position
+  Vec3f getFaceNormal(const Vec2f& barycentric) const {
+    const Vec3ui vidx = getIndices();
     const Vec3f n1 = getVertexNormal(vidx[0]);
     const Vec3f n2 = getVertexNormal(vidx[1]);
     const Vec3f n3 = getVertexNormal(vidx[2]);
@@ -63,9 +63,9 @@ class Triangle {
            n3 * barycentric[1];
   }
 
-  // compute texcoords of specified face, barycentric
-  Vec2f getTexcoords(uint32_t faceID, const Vec2f& barycentric) const {
-    const Vec3ui vidx = getIndices(faceID);
+  // compute texcoords at given position
+  Vec2f getTexcoords(const Vec2f& barycentric) const {
+    const Vec3ui vidx = getIndices();
     const Vec2f t1 = getVertexTexcoords(vidx[0]);
     const Vec2f t2 = getVertexTexcoords(vidx[1]);
     const Vec2f t3 = getVertexTexcoords(vidx[2]);
@@ -77,7 +77,7 @@ class Triangle {
   SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const {
     SurfaceInfo ret;
 
-    const Vec3ui vidx = getIndices(faceID);
+    const Vec3ui vidx = getIndices();
 
     const Vec3f p1 = getVertexPosition(vidx[0]);
     const Vec3f p2 = getVertexPosition(vidx[1]);
@@ -91,13 +91,13 @@ class Triangle {
                    barycentric[0] * p2 + barycentric[1] * p3;
 
     // compute normal
-    ret.normal = getFaceNormal(faceID, barycentric);
+    ret.normal = getFaceNormal(barycentric);
 
     // compute dpdu, dpdv
     orthonormalBasis(ret.normal, ret.dpdu, ret.dpdv);
 
     // compute texcoords
-    ret.texcoords = getTexcoords(faceID, barycentric);
+    ret.texcoords = getTexcoords(barycentric);
     ret.barycentric = barycentric;
 
     // compute pdf

@@ -68,43 +68,6 @@ class Scene {
   RTCDevice device;
   RTCScene scene;
 
-  // return vertex normal
-  Vec3f getVertexNormal(uint32_t vertexID) const {
-    return Vec3f(normals[3 * vertexID + 0], normals[3 * vertexID + 1],
-                 normals[3 * vertexID + 2]);
-  }
-
-  // return vertex texcoords
-  Vec2f getVertexTexcoords(uint32_t vertexID) const {
-    return Vec2f(texcoords[2 * vertexID + 0], texcoords[2 * vertexID + 1]);
-  }
-
-  // return vertex indices of specified face
-  Vec3ui getIndices(uint32_t faceID) const {
-    return Vec3ui(indices[3 * faceID + 0], indices[3 * faceID + 1],
-                  indices[3 * faceID + 2]);
-  }
-
-  // compute normal of specified face, barycentric
-  Vec3f getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
-    const Vec3ui vidx = getIndices(faceID);
-    const Vec3f n1 = getVertexNormal(vidx[0]);
-    const Vec3f n2 = getVertexNormal(vidx[1]);
-    const Vec3f n3 = getVertexNormal(vidx[2]);
-    return n1 * (1.0f - barycentric[0] - barycentric[1]) + n2 * barycentric[0] +
-           n3 * barycentric[1];
-  }
-
-  // compute texcoords of specified face, barycentric
-  Vec2f getTexcoords(uint32_t faceID, const Vec2f& barycentric) const {
-    const Vec3ui vidx = getIndices(faceID);
-    const Vec2f t1 = getVertexTexcoords(vidx[0]);
-    const Vec2f t2 = getVertexTexcoords(vidx[1]);
-    const Vec2f t3 = getVertexTexcoords(vidx[2]);
-    return t1 * (1.0f - barycentric[0] - barycentric[1]) + t2 * barycentric[0] +
-           t3 * barycentric[1];
-  }
-
   bool hasLight(uint32_t faceID) const { return lights[faceID] != nullptr; }
 
   void clear() {
@@ -334,9 +297,8 @@ class Scene {
       info.surfaceInfo.position = ray(info.t);
       info.surfaceInfo.barycentric = Vec2f(rayhit.hit.u, rayhit.hit.v);
       info.surfaceInfo.texcoords =
-          tri.getTexcoords(rayhit.hit.primID, info.surfaceInfo.barycentric);
-      info.surfaceInfo.normal =
-          getFaceNormal(rayhit.hit.primID, info.surfaceInfo.barycentric);
+          tri.getTexcoords(info.surfaceInfo.barycentric);
+      info.surfaceInfo.normal = tri.getFaceNormal(info.surfaceInfo.barycentric);
       orthonormalBasis(info.surfaceInfo.normal, info.surfaceInfo.dpdu,
                        info.surfaceInfo.dpdv);
 
