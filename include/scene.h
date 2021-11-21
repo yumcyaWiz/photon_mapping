@@ -24,7 +24,7 @@ const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
       Vec3f(material.specular[0], material.specular[1], material.specular[2]);
   const Vec3f ke =
       Vec3f(material.emission[0], material.emission[1], material.emission[2]);
-  return std::make_shared<Lambert>(kd);
+  return std::make_shared<Lambert>(Vec3(0.9f));
 }
 
 // create AreaLight from tinyobj material
@@ -239,16 +239,14 @@ class Scene {
       std::shared_ptr<Light> light = nullptr;
       if (material) {
         const tinyobj::material_t& m = material.value();
-        light =
-            createAreaLight(m, &this->triangles[this->triangles.size() - 1]);
+        light = createAreaLight(m, &this->triangles[faceID]);
         if (light != nullptr) {
           lights.push_back(light);
         }
       }
 
       // add primitive
-      primitives.emplace_back(&this->triangles[this->triangles.size() - 1],
-                              this->bxdfs[this->bxdfs.size() - 1], light);
+      primitives.emplace_back(&this->triangles[faceID], this->bxdfs[this->bxdfs.size() - 1], light);
     }
 
     spdlog::info("[Scene] vertices: {}", nVertices());
