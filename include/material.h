@@ -174,7 +174,7 @@ class Glass : public BxDF {
       if (refract(wo, n, iorI, iorT, tr)) {
         wi = tr;
         pdf = 1.0f;
-        return iorT * iorT / (iorI * iorI) * rho / absCosTheta(wi);
+        return rho / absCosTheta(wi);
       }
       // total reflection
       else {
@@ -212,8 +212,7 @@ class Glass : public BxDF {
     // refraction
     Vec3f tr;
     if (refract(wo, n, iorI, iorT, tr)) {
-      ret.emplace_back(tr, std::max((1.0f - fr), 0.0f) * (iorT * iorT) /
-                               (iorI * iorI) * rho / absCosTheta(tr));
+      ret.emplace_back(tr, (1.0f - fr) * rho / absCosTheta(tr));
     } else {
       ret[0].second = rho / absCosTheta(wr);
     }
