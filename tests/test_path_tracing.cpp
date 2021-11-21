@@ -9,14 +9,14 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_samples = 100;
+  const int n_samples = 10000;
   const int max_depth = 100;
 
   Image image(width, height);
-  Camera camera(Vec3f(0, 1, 7), Vec3f(0, 0, -1), 0.25 * PI);
+  Camera camera(Vec3f(0, 1, 6), Vec3f(0, 0, -1), 0.25 * PI);
 
   Scene scene;
-  scene.loadModel("CornellBox-Original.obj");
+  scene.loadModel("CornellBox-Water.obj");
   scene.build();
 
   // photon tracing and build photon map

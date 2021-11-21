@@ -1,5 +1,3 @@
-#include <omp.h>
-
 #include "camera.h"
 #include "image.h"
 #include "integrator.h"
@@ -10,21 +8,18 @@ int main() {
   const int width = 512;
   const int height = 512;
   const int n_samples = 100;
-  const int n_photons = 1000000;
+  const int n_photons = 10000;
   const int n_estimation_global = 100;
-  const float n_photons_caustics_multiplier = 1;
+  const float n_photons_caustics_multiplier = 100;
   const int n_estimation_caustics = 100;
   const bool final_gathering = true;
   const int max_depth = 100;
-  const Vec3f camPos(0, 1, 7);
-  const Vec3f lookAt(0, 1, 0);
 
   Image image(width, height);
-
-  const Camera camera(camPos, normalize(lookAt - camPos), 0.25 * PI);
+  Camera camera(Vec3f(0, 1, 6), Vec3f(0, 0, -1), 0.25 * PI);
 
   Scene scene;
-  scene.loadModel("CornellBox-Original.obj");
+  scene.loadModel("CornellBox-Water.obj");
   scene.build();
 
   // photon tracing and build photon map
