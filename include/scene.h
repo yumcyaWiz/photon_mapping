@@ -81,14 +81,15 @@ class Scene {
     bxdfs.clear();
     lights.clear();
     primitives.clear();
-
-    rtcReleaseScene(scene);
-    rtcReleaseDevice(device);
   }
 
  public:
   Scene() {}
-  ~Scene() { clear(); }
+  ~Scene() {
+    clear();
+    rtcReleaseScene(scene);
+    rtcReleaseDevice(device);
+  }
 
   // load obj file
   // TODO: remove vertex duplication
@@ -215,18 +216,19 @@ class Scene {
         }
 
         // add light
+        std::shared_ptr<Light> light = nullptr;
         if (materialID != -1) {
           const tinyobj::material_t& m = materials[materialID];
-          lights.push_back(
-              createAreaLight(m, &this->triangles[this->triangles.size() - 1]));
-        } else {
-          lights.push_back(nullptr);
+          light =
+              createAreaLight(m, &this->triangles[this->triangles.size() - 1]);
+          if (light != nullptr) {
+            lights.push_back(light);
+          }
         }
 
         // add primitive
         primitives.emplace_back(&this->triangles[this->triangles.size() - 1],
-                                this->bxdfs[this->bxdfs.size() - 1],
-                                this->lights[this->lights.size() - 1]);
+                                this->bxdfs[this->bxdfs.size() - 1], light);
 
         index_offset += fv;
       }
@@ -234,6 +236,7 @@ class Scene {
 
     spdlog::info("[Scene] vertices: {}", nVertices());
     spdlog::info("[Scene] faces: {}", nFaces());
+    spdlog::info("[Scene] lights: {}", lights.size());
   }
 
   uint32_t nVertices() const { return vertices.size() / 3; }
