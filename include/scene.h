@@ -13,12 +13,12 @@
 
 // create material from tinyobj material
 Material createMaterial(const tinyobj::material_t& material) {
-  const Vec3 kd =
-      Vec3(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
-  const Vec3 ks =
-      Vec3(material.specular[0], material.specular[1], material.specular[2]);
-  const Vec3 ke =
-      Vec3(material.emission[0], material.emission[1], material.emission[2]);
+  const Vec3f kd =
+      Vec3f(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
+  const Vec3f ks =
+      Vec3f(material.specular[0], material.specular[1], material.specular[2]);
+  const Vec3f ke =
+      Vec3f(material.emission[0], material.emission[1], material.emission[2]);
   return Material(kd, ks, ke);
 }
 
@@ -42,9 +42,9 @@ class Scene {
   RTCScene scene;
 
   // return vertex normal
-  Vec3 getVertexNormal(uint32_t vertexID) const {
-    return Vec3(normals[3 * vertexID + 0], normals[3 * vertexID + 1],
-                normals[3 * vertexID + 2]);
+  Vec3f getVertexNormal(uint32_t vertexID) const {
+    return Vec3f(normals[3 * vertexID + 0], normals[3 * vertexID + 1],
+                 normals[3 * vertexID + 2]);
   }
 
   // return vertex texcoords
@@ -68,11 +68,11 @@ class Scene {
   }
 
   // compute normal of specified face, barycentric
-  Vec3 getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
+  Vec3f getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
     const VertexIndices vidx = getIndices(faceID);
-    const Vec3 n1 = getVertexNormal(vidx.v1idx);
-    const Vec3 n2 = getVertexNormal(vidx.v2idx);
-    const Vec3 n3 = getVertexNormal(vidx.v3idx);
+    const Vec3f n1 = getVertexNormal(vidx.v1idx);
+    const Vec3f n2 = getVertexNormal(vidx.v2idx);
+    const Vec3f n3 = getVertexNormal(vidx.v3idx);
     return n1 * (1.0f - barycentric[0] - barycentric[1]) + n2 * barycentric[0] +
            n3 * barycentric[1];
   }
@@ -141,8 +141,8 @@ class Scene {
         const size_t fv =
             static_cast<size_t>(shapes[s].mesh.num_face_vertices[f]);
 
-        std::vector<Vec3> vertices;
-        std::vector<Vec3> normals;
+        std::vector<Vec3f> vertices;
+        std::vector<Vec3f> normals;
         std::vector<Vec2f> texcoords;
 
         // loop over vertices
@@ -156,7 +156,7 @@ class Scene {
               attrib.vertices[3 * static_cast<size_t>(idx.vertex_index) + 1];
           const tinyobj::real_t vz =
               attrib.vertices[3 * static_cast<size_t>(idx.vertex_index) + 2];
-          vertices.push_back(Vec3(vx, vy, vz));
+          vertices.push_back(Vec3f(vx, vy, vz));
 
           if (idx.normal_index >= 0) {
             const tinyobj::real_t nx =
@@ -165,7 +165,7 @@ class Scene {
                 attrib.normals[3 * static_cast<size_t>(idx.normal_index) + 1];
             const tinyobj::real_t nz =
                 attrib.normals[3 * static_cast<size_t>(idx.normal_index) + 2];
-            normals.push_back(Vec3(nx, ny, nz));
+            normals.push_back(Vec3f(nx, ny, nz));
           }
 
           if (idx.texcoord_index >= 0) {
@@ -181,9 +181,9 @@ class Scene {
 
         // if normals is empty, add geometric normal
         if (normals.size() == 0) {
-          const Vec3 v1 = normalize(vertices[1] - vertices[0]);
-          const Vec3 v2 = normalize(vertices[2] - vertices[0]);
-          const Vec3 n = normalize(cross(v1, v2));
+          const Vec3f v1 = normalize(vertices[1] - vertices[0]);
+          const Vec3f v2 = normalize(vertices[2] - vertices[0]);
+          const Vec3f n = normalize(cross(v1, v2));
           normals.push_back(n);
           normals.push_back(n);
           normals.push_back(n);

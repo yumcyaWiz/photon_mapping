@@ -8,16 +8,16 @@
 #include "core.h"
 
 struct Photon {
-  Vec3 throughput;  // F*G/pdf
-  Vec3 position;
-  Vec3 wi;  // incident direction
+  Vec3f throughput;  // F*G/pdf
+  Vec3f position;
+  Vec3f wi;  // incident direction
 
   // implement Point
   static constexpr int dim = 3;
   float operator[](int i) const { return position[i]; }
 
   Photon() {}
-  Photon(const Vec3& flux, const Vec3& position, const Vec3& wi)
+  Photon(const Vec3f& flux, const Vec3f& position, const Vec3f& wi)
       : throughput(flux), position(position), wi(wi) {}
 };
 
@@ -258,17 +258,17 @@ class PhotonMap {
     kdtree.buildTree();
   }
 
-  int queryNearestPhoton(const Vec3& p, float& max_dist2) const {
+  int queryNearestPhoton(const Vec3f& p, float& max_dist2) const {
     std::vector<int> indices = kdtree.searchKNearest(p, 1, max_dist2);
     return indices[0];
   }
 
-  std::vector<int> queryKNearestPhotons(const Vec3& p, int k,
+  std::vector<int> queryKNearestPhotons(const Vec3f& p, int k,
                                         float& max_dist2) const {
     return kdtree.searchKNearest(p, k, max_dist2);
   }
 
-  std::vector<int> querySphericalNeighborPhotons(const Vec3& p, float r,
+  std::vector<int> querySphericalNeighborPhotons(const Vec3f& p, float r,
                                                  float& max_dist2) const {
     return kdtree.sphericalRangeSearch(p, r, max_dist2);
   }

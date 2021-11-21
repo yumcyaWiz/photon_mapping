@@ -9,7 +9,7 @@ int main() {
     const float u = static_cast<float>(i) / height;
     for (int j = 0; j < width; ++j) {
       const float v = static_cast<float>(j) / height;
-      image.setPixel(i, j, Vec3(u, v, 1.0f));
+      image.setPixel(i, j, Vec3f(u, v, 1.0f));
     }
   }
 

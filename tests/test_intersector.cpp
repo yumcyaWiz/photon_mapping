@@ -7,11 +7,11 @@ int main() {
   const int width = 512;
   const int height = 512;
 
-  const auto sphere_shape = std::make_shared<Sphere>(Vec3(0, 1, 0), 1.0f);
-  const auto sphere2_shape = std::make_shared<Sphere>(Vec3(-1, 1, -1), 1.0f);
-  const auto sphere3_shape = std::make_shared<Sphere>(Vec3(1, 1, 1), 1.0f);
-  const auto floor_shape =
-      std::make_shared<Plane>(Vec3(5, 0, -5), Vec3(-10, 0, 0), Vec3(0, 0, 10));
+  const auto sphere_shape = std::make_shared<Sphere>(Vec3f(0, 1, 0), 1.0f);
+  const auto sphere2_shape = std::make_shared<Sphere>(Vec3f(-1, 1, -1), 1.0f);
+  const auto sphere3_shape = std::make_shared<Sphere>(Vec3f(1, 1, 1), 1.0f);
+  const auto floor_shape = std::make_shared<Plane>(
+      Vec3f(5, 0, -5), Vec3f(-10, 0, 0), Vec3f(0, 0, 10));
 
   const Primitive floor(floor_shape, nullptr);
   const Primitive sphere(sphere_shape, nullptr);
@@ -25,7 +25,7 @@ int main() {
   scene.addPrimitive(sphere3);
   scene.build();
 
-  Camera camera(Vec3(0, 1, 5), Vec3(0, 0, -1));
+  Camera camera(Vec3f(0, 1, 5), Vec3f(0, 0, -1));
 
   Image image(width, height);
   for (int i = 0; i < height; ++i) {
@@ -41,7 +41,7 @@ int main() {
           image.setPixel(i, j, 0.5f * (info.surfaceInfo.normal + 1.0f));
         }
       } else {
-        image.setPixel(i, j, Vec3(0));
+        image.setPixel(i, j, Vec3f(0));
       }
     }
   }

@@ -6,10 +6,10 @@ int main() {
   const int width = 512;
   const int height = 512;
 
-  const auto shape = std::make_shared<Sphere>(Vec3(0), 1.0f);
+  const auto shape = std::make_shared<Sphere>(Vec3f(0), 1.0f);
   const Primitive sphere(shape, nullptr);
 
-  Camera camera(Vec3(0, 0, 3), Vec3(0, 0, -1));
+  Camera camera(Vec3f(0, 0, 3), Vec3f(0, 0, -1));
 
   Image image(width, height);
   for (int i = 0; i < height; ++i) {
@@ -25,7 +25,7 @@ int main() {
           image.setPixel(i, j, 0.5f * (info.surfaceInfo.normal + 1.0f));
         }
       } else {
-        image.setPixel(i, j, Vec3(0));
+        image.setPixel(i, j, Vec3f(0));
       }
     }
   }

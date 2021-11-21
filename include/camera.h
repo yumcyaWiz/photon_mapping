@@ -9,18 +9,18 @@
 // pinhole camera
 class Camera {
  private:
-  Vec3 position;
-  Vec3 forward;
-  Vec3 right;
-  Vec3 up;
+  Vec3f position;
+  Vec3f forward;
+  Vec3f right;
+  Vec3f up;
 
   float FOV;
   float focal_length;
 
  public:
-  Camera(const Vec3& position, const Vec3& forward, float FOV = 0.5f * PI)
+  Camera(const Vec3f& position, const Vec3f& forward, float FOV = 0.5f * PI)
       : position(position), forward(forward) {
-    right = normalize(cross(forward, Vec3(0, 1, 0)));
+    right = normalize(cross(forward, Vec3f(0, 1, 0)));
     up = normalize(cross(right, forward));
 
     spdlog::info("[Camera] position: ({}, {}, {})", position[0], position[1],
@@ -37,8 +37,8 @@ class Camera {
   }
 
   bool sampleRay(const Vec2f& uv, Ray& ray, float& pdf) const {
-    const Vec3 pinholePos = position + focal_length * forward;
-    const Vec3 sensorPos = position + uv[0] * right + uv[1] * up;
+    const Vec3f pinholePos = position + focal_length * forward;
+    const Vec3f sensorPos = position + uv[0] * right + uv[1] * up;
     ray = Ray(sensorPos, normalize(pinholePos - sensorPos));
     pdf = 1.0f;
     return true;

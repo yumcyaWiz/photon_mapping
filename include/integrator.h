@@ -12,8 +12,8 @@ class Integrator {
   virtual void build(const Scene& scene, Sampler& sampler) = 0;
 
   // compute radiance coming from given ray
-  virtual Vec3 integrate(const Ray& ray, const Scene& scene,
-                         Sampler& sampler) const = 0;
+  virtual Vec3f integrate(const Ray& ray, const Scene& scene,
+                          Sampler& sampler) const = 0;
 };
 
 // implementation of path tracing
@@ -27,10 +27,10 @@ class PathTracing : public Integrator {
 
   void build(const Scene& scene, Sampler& sampler) override {}
 
-  Vec3 integrate(const Ray& ray_in, const Scene& scene,
-                 Sampler& sampler) const override {
+  Vec3f integrate(const Ray& ray_in, const Scene& scene,
+                  Sampler& sampler) const override {
     Ray ray = ray_in;
-    Vec3 throughput(1, 1, 1);
+    Vec3f throughput(1, 1, 1);
 
     for (int k = 0; k < maxDepth; ++k) {
       IntersectInfo info;
@@ -53,10 +53,10 @@ class PathTracing : public Integrator {
         }
 
         // sample direction by BxDF
-        Vec3 dir;
+        Vec3f dir;
         float pdf_dir;
-        Vec3 f = info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
-                                               sampler, dir, pdf_dir);
+        Vec3f f = info.hitPrimitive->sampleBxDF(
+            -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
 
         // update throughput and ray
         throughput *= f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
@@ -66,7 +66,7 @@ class PathTracing : public Integrator {
       }
     }
 
-    return Vec3(0);
+    return Vec3f(0);
   }
 };
 
@@ -84,18 +84,18 @@ class PhotonMapping : public Integrator {
   PhotonMap causticsPhotonMap;
 
   // compute reflected radiance with global photon map
-  Vec3 computeRadianceWithPhotonMap(const Vec3& wo,
-                                    const IntersectInfo& info) const {
+  Vec3f computeRadianceWithPhotonMap(const Vec3f& wo,
+                                     const IntersectInfo& info) const {
     // get nearby photons
     float max_dist2;
     const std::vector<int> photon_indices =
         globalPhotonMap.queryKNearestPhotons(info.surfaceInfo.position,
                                              nEstimationGlobal, max_dist2);
 
-    Vec3 Lo;
+    Vec3f Lo;
     for (const int photon_idx : photon_indices) {
       const Photon& photon = globalPhotonMap.getIthPhoton(photon_idx);
-      const Vec3 f =
+      const Vec3f f =
           info.hitPrimitive->evaluateBxDF(wo, photon.wi, info.surfaceInfo);
       Lo += f * photon.throughput;
     }
@@ -106,18 +106,18 @@ class PhotonMapping : public Integrator {
   }
 
   // compute reflected radiance with caustics photon map
-  Vec3 computeCausticsWithPhotonMap(const Vec3& wo,
-                                    const IntersectInfo& info) const {
+  Vec3f computeCausticsWithPhotonMap(const Vec3f& wo,
+                                     const IntersectInfo& info) const {
     // get nearby photons
     float max_dist2;
     const std::vector<int> photon_indices =
         causticsPhotonMap.queryKNearestPhotons(info.surfaceInfo.position,
                                                nEstimationGlobal, max_dist2);
 
-    Vec3 Lo;
+    Vec3f Lo;
     for (const int photon_idx : photon_indices) {
       const Photon& photon = causticsPhotonMap.getIthPhoton(photon_idx);
-      const Vec3 f =
+      const Vec3f f =
           info.hitPrimitive->evaluateBxDF(wo, photon.wi, info.surfaceInfo);
       Lo += f * photon.throughput;
     }
@@ -129,10 +129,10 @@ class PhotonMapping : public Integrator {
   }
 
   // compute direct illumination with explicit light sampling(NEE)
-  Vec3 computeDirectIllumination(const Scene& scene, const Vec3& wo,
-                                 const IntersectInfo& info,
-                                 Sampler& sampler) const {
-    Vec3 Ld;
+  Vec3f computeDirectIllumination(const Scene& scene, const Vec3f& wo,
+                                  const IntersectInfo& info,
+                                  Sampler& sampler) const {
+    Vec3f Ld;
 
     // sample light
     float pdf_choose_light;
@@ -144,7 +144,7 @@ class PhotonMapping : public Integrator {
     const SurfaceInfo light_surf = light->samplePoint(sampler, pdf_pos_light);
 
     // convert positional pdf to directional pdf
-    const Vec3 wi = normalize(light_surf.position - info.surfaceInfo.position);
+    const Vec3f wi = normalize(light_surf.position - info.surfaceInfo.position);
     const float r = length(light_surf.position - info.surfaceInfo.position);
     const float pdf_dir =
         pdf_pos_light * r * r / std::abs(dot(-wi, light_surf.normal));
@@ -156,8 +156,8 @@ class PhotonMapping : public Integrator {
     // trace ray to the light
     IntersectInfo info_shadow;
     if (!scene.intersect(ray_shadow, info_shadow)) {
-      const Vec3 Le = light->Le(light_surf, -wi);
-      const Vec3 f = info.hitPrimitive->evaluateBxDF(wo, wi, info.surfaceInfo);
+      const Vec3f Le = light->Le(light_surf, -wi);
+      const Vec3f f = info.hitPrimitive->evaluateBxDF(wo, wi, info.surfaceInfo);
       const float cos = std::abs(dot(wi, info.surfaceInfo.normal));
       Ld = f * cos * Le / (pdf_choose_light * pdf_dir);
     }
@@ -165,18 +165,20 @@ class PhotonMapping : public Integrator {
     return Ld;
   }
 
-  Vec3 computeIndirectIlluminationRecursive(const Scene& scene, const Vec3& wo,
-                                            const IntersectInfo& info,
-                                            Sampler& sampler, int depth) const {
-    if (depth >= maxDepth) return Vec3(0);
+  Vec3f computeIndirectIlluminationRecursive(const Scene& scene,
+                                             const Vec3f& wo,
+                                             const IntersectInfo& info,
+                                             Sampler& sampler,
+                                             int depth) const {
+    if (depth >= maxDepth) return Vec3f(0);
 
-    Vec3 Li;
+    Vec3f Li;
 
     // sample direction by BxDF
-    Vec3 dir;
+    Vec3f dir;
     float pdf_dir;
-    const Vec3 f = info.hitPrimitive->sampleBxDF(wo, info.surfaceInfo, sampler,
-                                                 dir, pdf_dir);
+    const Vec3f f = info.hitPrimitive->sampleBxDF(wo, info.surfaceInfo, sampler,
+                                                  dir, pdf_dir);
     const float cos = std::abs(dot(info.surfaceInfo.normal, dir));
 
     // trace final gathering ray
@@ -205,15 +207,15 @@ class PhotonMapping : public Integrator {
   }
 
   // compute indirect illumination with final gathering
-  Vec3 computeIndirectIllumination(const Scene& scene, const Vec3& wo,
-                                   const IntersectInfo& info,
-                                   Sampler& sampler) const {
+  Vec3f computeIndirectIllumination(const Scene& scene, const Vec3f& wo,
+                                    const IntersectInfo& info,
+                                    Sampler& sampler) const {
     return computeIndirectIlluminationRecursive(scene, wo, info, sampler, 0);
   }
 
   // sample initial ray from light and compute initial throughput
   Ray sampleRayFromLight(const Scene& scene, Sampler& sampler,
-                         Vec3& throughput) {
+                         Vec3f& throughput) {
     // sample light
     float light_choose_pdf;
     const std::shared_ptr<Light> light =
@@ -225,7 +227,8 @@ class PhotonMapping : public Integrator {
 
     // sample direction on light
     float light_dir_pdf;
-    const Vec3 dir = light->sampleDirection(light_surf, sampler, light_dir_pdf);
+    const Vec3f dir =
+        light->sampleDirection(light_surf, sampler, light_dir_pdf);
 
     // spawn ray
     Ray ray(light_surf.position, dir);
@@ -236,9 +239,9 @@ class PhotonMapping : public Integrator {
     return ray;
   }
 
-  Vec3 integrateRecursive(const Ray& ray, const Scene& scene, Sampler& sampler,
-                          int depth) const {
-    if (depth >= maxDepth) return Vec3(0);
+  Vec3f integrateRecursive(const Ray& ray, const Scene& scene, Sampler& sampler,
+                           int depth) const {
+    if (depth >= maxDepth) return Vec3f(0);
 
     IntersectInfo info;
     if (scene.intersect(ray, info)) {
@@ -256,14 +259,14 @@ class PhotonMapping : public Integrator {
           return computeRadianceWithPhotonMap(-ray.direction, info);
         } else {
           // compute direct illumination by explicit light sampling
-          const Vec3 Ld =
+          const Vec3f Ld =
               computeDirectIllumination(scene, -ray.direction, info, sampler);
 
           // compute caustics illumination with caustics photon map
-          const Vec3 Lc = computeCausticsWithPhotonMap(-ray.direction, info);
+          const Vec3f Lc = computeCausticsWithPhotonMap(-ray.direction, info);
 
           // compute indirect illumination with final gathering
-          const Vec3 Li =
+          const Vec3f Li =
               computeIndirectIllumination(scene, -ray.direction, info, sampler);
 
           return (Ld + Lc + Li);
@@ -274,14 +277,14 @@ class PhotonMapping : public Integrator {
       else if (bxdf_type == BxDFType::SPECULAR) {
         if (depth >= 3) {
           // sample direction by BxDF
-          Vec3 dir;
+          Vec3f dir;
           float pdf_dir;
-          const Vec3 f = info.hitPrimitive->sampleBxDF(
+          const Vec3f f = info.hitPrimitive->sampleBxDF(
               -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
 
           // recursively raytrace
           const Ray next_ray(info.surfaceInfo.position, dir);
-          const Vec3 throughput =
+          const Vec3f throughput =
               f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
 
           return throughput *
@@ -296,13 +299,13 @@ class PhotonMapping : public Integrator {
                                                info.surfaceInfo);
 
           // recursively raytrace
-          Vec3 Lo;
+          Vec3f Lo;
           for (const auto& dp : dir_pairs) {
-            const Vec3 dir = dp.first;
-            const Vec3 f = dp.second;
+            const Vec3f dir = dp.first;
+            const Vec3f f = dp.second;
 
             const Ray next_ray(info.surfaceInfo.position, dir);
-            const Vec3 throughput =
+            const Vec3f throughput =
                 f * std::abs(dot(dir, info.surfaceInfo.normal));
 
             Lo += throughput *
@@ -312,13 +315,13 @@ class PhotonMapping : public Integrator {
         }
       } else {
         spdlog::error("[PhotonMapping] invalid BxDF type");
-        return Vec3(0);
+        return Vec3f(0);
       }
     } else {
       // ray goes out to the sky
-      return Vec3(0);
+      return Vec3f(0);
     }
-    return Vec3(0);
+    return Vec3f(0);
   }
 
  public:
@@ -353,7 +356,7 @@ class PhotonMapping : public Integrator {
       auto& sampler_per_thread = *samplers[omp_get_thread_num()];
 
       // sample initial ray from light and set initial throughput
-      Vec3 throughput;
+      Vec3f throughput;
       Ray ray = sampleRayFromLight(scene, sampler_per_thread, throughput);
 
       // trace photons
@@ -395,9 +398,9 @@ class PhotonMapping : public Integrator {
           }
 
           // sample direction by BxDF
-          Vec3 dir;
+          Vec3f dir;
           float pdf_dir;
-          const Vec3 f =
+          const Vec3f f =
               info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
                                             sampler_per_thread, dir, pdf_dir);
 
@@ -429,7 +432,7 @@ class PhotonMapping : public Integrator {
         auto& sampler_per_thread = *samplers[omp_get_thread_num()];
 
         // sample initial ray from light and set initial throughput
-        Vec3 throughput;
+        Vec3f throughput;
         Ray ray = sampleRayFromLight(scene, sampler_per_thread, throughput);
 
         // when hitting diffuse surface after specular, add photon to the photon
@@ -477,9 +480,9 @@ class PhotonMapping : public Integrator {
             }
 
             // sample direction by BxDF
-            Vec3 dir;
+            Vec3f dir;
             float pdf_dir;
-            const Vec3 f =
+            const Vec3f f =
                 info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
                                               sampler_per_thread, dir, pdf_dir);
 
@@ -500,8 +503,8 @@ class PhotonMapping : public Integrator {
     }
   }
 
-  Vec3 integrate(const Ray& ray_in, const Scene& scene,
-                 Sampler& sampler) const override {
+  Vec3f integrate(const Ray& ray_in, const Scene& scene,
+                  Sampler& sampler) const override {
     return integrateRecursive(ray_in, scene, sampler, 0);
   }
 };

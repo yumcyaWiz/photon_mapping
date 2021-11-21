@@ -7,17 +7,17 @@
 
 class Material {
  public:
-  const Vec3 kd;
-  const Vec3 ks;
-  const Vec3 ke;
+  const Vec3f kd;
+  const Vec3f ks;
+  const Vec3f ke;
 
-  Material(const Vec3& kd, const Vec3& ks, const Vec3& ke)
+  Material(const Vec3f& kd, const Vec3f& ks, const Vec3f& ke)
       : kd(kd), ks(ks), ke(ke) {}
 };
 
 enum class BxDFType { DIFFUSE, SPECULAR };
 
-using DirectionPair = std::pair<Vec3, Vec3>;
+using DirectionPair = std::pair<Vec3f, Vec3f>;
 
 class BxDF {
  private:
@@ -26,20 +26,20 @@ class BxDF {
  public:
   BxDF(const BxDFType& type) : type(type) {}
 
-  static float cosTheta(const Vec3& v) { return v[1]; }
-  static float absCosTheta(const Vec3& v) { return std::abs(cosTheta(v)); }
+  static float cosTheta(const Vec3f& v) { return v[1]; }
+  static float absCosTheta(const Vec3f& v) { return std::abs(cosTheta(v)); }
 
-  static Vec3 reflect(const Vec3& v, const Vec3& n) {
+  static Vec3f reflect(const Vec3f& v, const Vec3f& n) {
     return -v + 2.0f * dot(v, n) * n;
   }
-  static bool refract(const Vec3& v, const Vec3& n, float iorI, float iorT,
-                      Vec3& t) {
-    const Vec3 t_h = -iorI / iorT * (v - dot(v, n) * n);
+  static bool refract(const Vec3f& v, const Vec3f& n, float iorI, float iorT,
+                      Vec3f& t) {
+    const Vec3f t_h = -iorI / iorT * (v - dot(v, n) * n);
     // total reflection
     if (length2(t_h) > 1.0f) {
       return false;
     }
-    const Vec3 t_p = -std::sqrt(std::max(1.0f - length2(t_h), 0.0f)) * n;
+    const Vec3f t_p = -std::sqrt(std::max(1.0f - length2(t_h), 0.0f)) * n;
     t = t_h + t_p;
     return true;
   }
@@ -56,45 +56,46 @@ class BxDF {
   BxDFType getType() const { return type; }
 
   // evaluate BxDF
-  virtual Vec3 evaluate(const Vec3& wo, const Vec3& wi) const = 0;
+  virtual Vec3f evaluate(const Vec3f& wo, const Vec3f& wi) const = 0;
 
   // sample direction
   // pdf is set to be propotional to BxDF
-  virtual Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
-                               float& pdf) const = 0;
+  virtual Vec3f sampleDirection(const Vec3f& wo, Sampler& sampler, Vec3f& wi,
+                                float& pdf) const = 0;
 
   // sample all samplable direction
   // NOTE: for specular only
   // NOTE: used for drawing fresnel reflection at low number of samples
   virtual std::vector<DirectionPair> sampleAllDirection(
-      const Vec3& wo) const = 0;
+      const Vec3f& wo) const = 0;
 };
 
 class Lambert : public BxDF {
  private:
-  Vec3 rho;
+  Vec3f rho;
 
  public:
-  Lambert(const Vec3& rho) : BxDF(BxDFType::DIFFUSE), rho(rho) {}
+  Lambert(const Vec3f& rho) : BxDF(BxDFType::DIFFUSE), rho(rho) {}
 
-  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const override {
+  Vec3f evaluate(const Vec3f& wo, const Vec3f& wi) const override {
     // when wo, wi is under the surface, return 0
     const float cosThetaO = cosTheta(wo);
     const float cosThetaI = cosTheta(wi);
-    if (cosThetaO < 0 || cosThetaI < 0) return Vec3(0);
+    if (cosThetaO < 0 || cosThetaI < 0) return Vec3f(0);
 
     return rho / PI;
   }
 
-  Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
-                       float& pdf) const override {
+  Vec3f sampleDirection(const Vec3f& wo, Sampler& sampler, Vec3f& wi,
+                        float& pdf) const override {
     // cosine weighted hemisphere sampling
     wi = sampleCosineHemisphere(sampler.getNext2D(), pdf);
 
     return evaluate(wo, wi);
   }
 
-  std::vector<DirectionPair> sampleAllDirection(const Vec3& wo) const override {
+  std::vector<DirectionPair> sampleAllDirection(
+      const Vec3f& wo) const override {
     std::vector<DirectionPair> ret;
     return ret;
   }
@@ -102,27 +103,28 @@ class Lambert : public BxDF {
 
 class Mirror : public BxDF {
  private:
-  Vec3 rho;
+  Vec3f rho;
 
  public:
-  Mirror(const Vec3& rho) : BxDF(BxDFType::SPECULAR), rho(rho) {}
+  Mirror(const Vec3f& rho) : BxDF(BxDFType::SPECULAR), rho(rho) {}
 
   // NOTE: delta function
-  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const override {
-    return Vec3(0);
+  Vec3f evaluate(const Vec3f& wo, const Vec3f& wi) const override {
+    return Vec3f(0);
   }
 
-  Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
-                       float& pdf) const override {
-    wi = reflect(wo, Vec3(0, 1, 0));
+  Vec3f sampleDirection(const Vec3f& wo, Sampler& sampler, Vec3f& wi,
+                        float& pdf) const override {
+    wi = reflect(wo, Vec3f(0, 1, 0));
     pdf = 1.0f;
 
     return rho / absCosTheta(wi);
   }
 
-  std::vector<DirectionPair> sampleAllDirection(const Vec3& wo) const override {
+  std::vector<DirectionPair> sampleAllDirection(
+      const Vec3f& wo) const override {
     std::vector<DirectionPair> ret;
-    const Vec3 wi = reflect(wo, Vec3(0, 1, 0));
+    const Vec3f wi = reflect(wo, Vec3f(0, 1, 0));
     ret.emplace_back(wi, rho / absCosTheta(wi));
     return ret;
   }
@@ -130,31 +132,31 @@ class Mirror : public BxDF {
 
 class Glass : public BxDF {
  private:
-  Vec3 rho;
+  Vec3f rho;
   float ior;
 
  public:
-  Glass(const Vec3& rho, float ior)
+  Glass(const Vec3f& rho, float ior)
       : BxDF(BxDFType::SPECULAR), rho(rho), ior(ior) {}
 
   // NOTE: delta function
-  Vec3 evaluate(const Vec3& wo, const Vec3& wi) const override {
-    return Vec3(0);
+  Vec3f evaluate(const Vec3f& wo, const Vec3f& wi) const override {
+    return Vec3f(0);
   }
 
-  Vec3 sampleDirection(const Vec3& wo, Sampler& sampler, Vec3& wi,
-                       float& pdf) const override {
+  Vec3f sampleDirection(const Vec3f& wo, Sampler& sampler, Vec3f& wi,
+                        float& pdf) const override {
     // set appropriate ior, normal
     float iorI, iorT;
-    Vec3 n;
+    Vec3f n;
     if (wo[1] > 0) {
       iorI = 1.0f;
       iorT = ior;
-      n = Vec3(0, 1, 0);
+      n = Vec3f(0, 1, 0);
     } else {
       iorI = ior;
       iorT = 1.0f;
-      n = Vec3(0, -1, 0);
+      n = Vec3f(0, -1, 0);
     }
 
     // fresnel reflectance
@@ -168,7 +170,7 @@ class Glass : public BxDF {
     }
     // refraction
     else {
-      Vec3 tr;
+      Vec3f tr;
       if (refract(wo, n, iorI, iorT, tr)) {
         wi = tr;
         pdf = 1.0f;
@@ -183,31 +185,32 @@ class Glass : public BxDF {
     }
   }
 
-  std::vector<DirectionPair> sampleAllDirection(const Vec3& wo) const override {
+  std::vector<DirectionPair> sampleAllDirection(
+      const Vec3f& wo) const override {
     std::vector<DirectionPair> ret;
 
     // set appropriate ior, normal
     float iorI, iorT;
-    Vec3 n;
+    Vec3f n;
     if (wo[1] > 0) {
       iorI = 1.0f;
       iorT = ior;
-      n = Vec3(0, 1, 0);
+      n = Vec3f(0, 1, 0);
     } else {
       iorI = ior;
       iorT = 1.0f;
-      n = Vec3(0, -1, 0);
+      n = Vec3f(0, -1, 0);
     }
 
     // fresnel reflectance
     const float fr = fresnel(dot(wo, n), iorI, iorT);
 
     // reflection
-    const Vec3 wr = reflect(wo, n);
+    const Vec3f wr = reflect(wo, n);
     ret.emplace_back(wr, fr * rho / absCosTheta(wr));
 
     // refraction
-    Vec3 tr;
+    Vec3f tr;
     if (refract(wo, n, iorI, iorT, tr)) {
       ret.emplace_back(tr, std::max((1.0f - fr), 0.0f) * (iorT * iorT) /
                                (iorI * iorI) * rho / absCosTheta(tr));

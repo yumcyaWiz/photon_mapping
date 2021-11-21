@@ -24,7 +24,7 @@ class Primitive {
   // NOTE: for populating scene's light array
   std::shared_ptr<AreaLight> getAreaLightPtr() const { return areaLight; }
 
-  Vec3 Le(const SurfaceInfo& surfInfo, const Vec3& dir) const {
+  Vec3f Le(const SurfaceInfo& surfInfo, const Vec3f& dir) const {
     return areaLight->Le(surfInfo, dir);
   }
 
@@ -38,26 +38,26 @@ class Primitive {
 
   BxDFType getBxDFType() const { return bxdf->getType(); }
 
-  Vec3 evaluateBxDF(const Vec3& wo, const Vec3& wi,
-                    const SurfaceInfo& surfInfo) const {
+  Vec3f evaluateBxDF(const Vec3f& wo, const Vec3f& wi,
+                     const SurfaceInfo& surfInfo) const {
     // world to local transform
-    const Vec3 wo_l =
+    const Vec3f wo_l =
         worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
-    const Vec3 wi_l =
+    const Vec3f wi_l =
         worldToLocal(wi, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
 
     return bxdf->evaluate(wo_l, wi_l);
   }
 
-  Vec3 sampleBxDF(const Vec3& wo, const SurfaceInfo& surfInfo, Sampler& sampler,
-                  Vec3& wi, float& pdf) const {
+  Vec3f sampleBxDF(const Vec3f& wo, const SurfaceInfo& surfInfo,
+                   Sampler& sampler, Vec3f& wi, float& pdf) const {
     // world to local transform
-    const Vec3 wo_l =
+    const Vec3f wo_l =
         worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
 
     // sample direction in tangent space
-    Vec3 wi_l;
-    const Vec3 f = bxdf->sampleDirection(wo_l, sampler, wi_l, pdf);
+    Vec3f wi_l;
+    const Vec3f f = bxdf->sampleDirection(wo_l, sampler, wi_l, pdf);
 
     // local to world transform
     wi = localToWorld(wi_l, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
@@ -65,10 +65,10 @@ class Primitive {
     return f;
   }
 
-  std::vector<DirectionPair> sampleAllBxDF(const Vec3& wo,
+  std::vector<DirectionPair> sampleAllBxDF(const Vec3f& wo,
                                            const SurfaceInfo& surfInfo) const {
     // world to local transform
-    const Vec3 wo_l =
+    const Vec3f wo_l =
         worldToLocal(wo, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
 
     // sample all direction in tangent space
