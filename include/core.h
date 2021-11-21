@@ -110,8 +110,6 @@ inline Vec2<T> operator/(float k, const Vec2<T>& v2) {
 }
 
 using Vec2f = Vec2<float>;
-using Vec2i = Vec2<int>;
-using Vec2ui = Vec2<uint32_t>;
 
 template <typename T>
 struct Vec3 {
@@ -217,7 +215,6 @@ inline Vec3<T> cross(const Vec3<T>& v1, const Vec3<T>& v2) {
 }
 
 using Vec3f = Vec3<float>;
-using Vec3i = Vec3<int>;
 using Vec3ui = Vec3<uint32_t>;
 
 inline float length(const Vec3f& v) { return std::sqrt(dot(v, v)); }

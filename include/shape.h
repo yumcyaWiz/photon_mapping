@@ -37,14 +37,14 @@ class Triangle : public Shape {
   }
 
   // return vertex indices of specified face
-  Vec3i getIndices(uint32_t faceID) const {
-    return Vec3i(indices[3 * faceID + 0], indices[3 * faceID + 1],
-                 indices[3 * faceID + 2]);
+  Vec3ui getIndices(uint32_t faceID) const {
+    return Vec3ui(indices[3 * faceID + 0], indices[3 * faceID + 1],
+                  indices[3 * faceID + 2]);
   }
 
   // compute normal of specified face, barycentric
   Vec3f getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
-    const Vec3i vidx = getIndices(faceID);
+    const Vec3ui vidx = getIndices(faceID);
     const Vec3f n1 = getVertexNormal(vidx[0]);
     const Vec3f n2 = getVertexNormal(vidx[1]);
     const Vec3f n3 = getVertexNormal(vidx[2]);
@@ -54,7 +54,7 @@ class Triangle : public Shape {
 
   // compute texcoords of specified face, barycentric
   Vec2f getTexcoords(uint32_t faceID, const Vec2f& barycentric) const {
-    const Vec3i vidx = getIndices(faceID);
+    const Vec3ui vidx = getIndices(faceID);
     const Vec2f t1 = getVertexTexcoords(vidx[0]);
     const Vec2f t2 = getVertexTexcoords(vidx[1]);
     const Vec2f t3 = getVertexTexcoords(vidx[2]);
