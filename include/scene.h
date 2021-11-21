@@ -28,7 +28,7 @@ const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
 
 // create AreaLight from tinyobj material
 const std::shared_ptr<AreaLight> createAreaLight(
-    const tinyobj::material_t& material, const Triangle& tri) {
+    const tinyobj::material_t& material, const Triangle* tri) {
   if (material.emission[0] > 0 || material.emission[1] > 0 ||
       material.emission[2] > 0) {
     const Vec3f le =
@@ -217,7 +217,7 @@ class Scene {
         if (materialID != -1) {
           const tinyobj::material_t& m = materials[materialID];
           lights.push_back(
-              createAreaLight(m, this->triangles[this->triangles.size() - 1]));
+              createAreaLight(m, &this->triangles[this->triangles.size() - 1]));
         } else {
           lights.push_back(nullptr);
         }
