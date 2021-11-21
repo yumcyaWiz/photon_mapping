@@ -21,9 +21,6 @@ class Primitive {
 
   bool hasAreaLight() const { return areaLight != nullptr; }
 
-  // NOTE: for populating scene's light array
-  std::shared_ptr<AreaLight> getAreaLightPtr() const { return areaLight; }
-
   Vec3f Le(const SurfaceInfo& surfInfo, const Vec3f& dir) const {
     return areaLight->Le(surfInfo, dir);
   }

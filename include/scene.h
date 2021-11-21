@@ -156,7 +156,7 @@ class Scene {
     const auto& materials = reader.GetMaterials();
 
     // loop over shapes
-    // populate mesh data, bxdfs, lights
+    // populate mesh data, shapes, bxdfs, lights, primitives
     for (size_t s = 0; s < shapes.size(); ++s) {
       size_t index_offset = 0;
       // loop over faces
@@ -271,15 +271,13 @@ class Scene {
 
     spdlog::info("[Scene] vertices: {}", nVertices());
     spdlog::info("[Scene] faces: {}", nFaces());
-    spdlog::info("[Scene] materials: {}", nMaterials());
   }
 
   uint32_t nVertices() const { return vertices.size() / 3; }
   uint32_t nFaces() const { return indices.size() / 3; }
-  uint32_t nMaterials() const { return bxdfs.size(); }
 
   void build() {
-    spdlog::info("[Scene] building scene...", lights.size());
+    spdlog::info("[Scene] building scene...");
 
     // setup embree
     device = rtcNewDevice(NULL);
@@ -291,7 +289,7 @@ class Scene {
     float* vb = (float*)rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0,
                                                 RTC_FORMAT_FLOAT3,
                                                 3 * sizeof(float), nVertices());
-    for (int i = 0; i < vertices.size(); ++i) {
+    for (size_t i = 0; i < vertices.size(); ++i) {
       vb[i] = vertices[i];
     }
 
@@ -299,7 +297,7 @@ class Scene {
     unsigned* ib = (unsigned*)rtcSetNewGeometryBuffer(
         geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, 3 * sizeof(unsigned),
         nFaces());
-    for (int i = 0; i < indices.size(); ++i) {
+    for (size_t i = 0; i < indices.size(); ++i) {
       ib[i] = indices[i];
     }
 
@@ -307,15 +305,6 @@ class Scene {
     rtcAttachGeometry(scene, geom);
     rtcReleaseGeometry(geom);
     rtcCommitScene(scene);
-
-    // populate lights
-    for (const auto& primitive : primitives) {
-      if (primitive.hasAreaLight()) {
-        lights.push_back(primitive.getAreaLightPtr());
-      }
-    }
-
-    spdlog::info("[Scene] number of lights: {}", lights.size());
   }
 
   bool intersect(const Ray& ray, IntersectInfo& info) const {
