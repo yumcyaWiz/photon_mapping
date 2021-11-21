@@ -180,6 +180,15 @@ inline float length(const Vec3& v) { return std::sqrt(dot(v, v)); }
 inline float length2(const Vec3& v) { return dot(v, v); }
 inline Vec3 normalize(const Vec3& v) { return v / length(v); }
 
+inline void orthonormalBasis(const Vec3& n, Vec3& t, Vec3& b) {
+  if (std::abs(n[1]) < 0.9f) {
+    t = normalize(cross(n, Vec3(0, 1, 0)));
+  } else {
+    t = normalize(cross(n, Vec3(0, 0, -1)));
+  }
+  b = normalize(cross(t, n));
+}
+
 inline Vec3 worldToLocal(const Vec3& v, const Vec3& lx, const Vec3& ly,
                          const Vec3& lz) {
   return Vec3(dot(v, lx), dot(v, ly), dot(v, lz));
@@ -217,15 +226,18 @@ struct SurfaceInfo {
   Vec3 normal;
   Vec3 dpdu;
   Vec3 dpdv;
+  Vec2 texcoords;
+  Vec2 barycentric;
 };
 
 // forward declaration
-class Primitive;
+class Material;
 
 struct IntersectInfo {
   float t;
+  uint32_t primID;
   SurfaceInfo surfaceInfo;
-  const Primitive* hitPrimitive;
+  const Material* material;
 };
 
 #endif
