@@ -1,6 +1,5 @@
 #ifndef _LIGHT_H
 #define _LIGHT_H
-#include <memory>
 
 #include "core.h"
 #include "sampler.h"
@@ -17,18 +16,18 @@ class Light {
 class AreaLight : public Light {
  private:
   const Vec3f le;
-  const std::shared_ptr<Shape> shape;
+  const Triangle* triangle;
 
  public:
-  AreaLight(const Vec3f& le, const std::shared_ptr<Shape>& shape)
-      : le(le), shape(shape) {}
+  AreaLight(const Vec3f& le, const Triangle* triangle)
+      : le(le), triangle(triangle) {}
 
   Vec3f Le(const SurfaceInfo& info, const Vec3f& dir) const override {
     return le;
   }
 
   SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const override {
-    return shape->samplePoint(sampler, pdf);
+    return triangle->samplePoint(sampler, pdf);
   }
 
   Vec3f sampleDirection(const SurfaceInfo& surfInfo, Sampler& sampler,
