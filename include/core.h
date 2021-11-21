@@ -21,12 +21,12 @@ constexpr float RAY_EPS = 1e-5f;
 inline float rad2deg(float rad) { return 180.0f * rad / PI; }
 inline float deg2rad(float deg) { return deg / 180.0f * PI; }
 
-struct Vec2 {
+struct Vec2f {
   float v[2];
 
-  Vec2() { v[0] = v[1] = 0; }
-  Vec2(float x) { v[0] = v[1] = x; }
-  Vec2(float x, float y) {
+  Vec2f() { v[0] = v[1] = 0; }
+  Vec2f(float x) { v[0] = v[1] = x; }
+  Vec2f(float x, float y) {
     v[0] = x;
     v[1] = y;
   }
@@ -34,21 +34,21 @@ struct Vec2 {
   float operator[](int i) const { return v[i]; }
   float& operator[](int i) { return v[i]; }
 
-  Vec2 operator-() const { return Vec2(-v[0], -v[1]); }
+  Vec2f operator-() const { return Vec2f(-v[0], -v[1]); }
 
-  Vec2& operator+=(const Vec2& v) {
+  Vec2f& operator+=(const Vec2f& v) {
     for (int i = 0; i < 2; ++i) {
       this->v[i] += v[i];
     }
     return *this;
   }
-  Vec2& operator*=(const Vec2& v) {
+  Vec2f& operator*=(const Vec2f& v) {
     for (int i = 0; i < 2; ++i) {
       this->v[i] *= v[i];
     }
     return *this;
   }
-  Vec2& operator/=(const Vec2& v) {
+  Vec2f& operator/=(const Vec2f& v) {
     for (int i = 0; i < 2; ++i) {
       this->v[i] /= v[i];
     }
@@ -56,40 +56,40 @@ struct Vec2 {
   }
 };
 
-inline Vec2 operator+(const Vec2& v1, const Vec2& v2) {
-  return Vec2(v1[0] + v2[0], v1[1] + v2[1]);
+inline Vec2f operator+(const Vec2f& v1, const Vec2f& v2) {
+  return Vec2f(v1[0] + v2[0], v1[1] + v2[1]);
 }
-inline Vec2 operator+(const Vec2& v1, float k) {
-  return Vec2(v1[0] + k, v1[1] + k);
+inline Vec2f operator+(const Vec2f& v1, float k) {
+  return Vec2f(v1[0] + k, v1[1] + k);
 }
-inline Vec2 operator+(float k, const Vec2& v2) { return v2 + k; }
+inline Vec2f operator+(float k, const Vec2f& v2) { return v2 + k; }
 
-inline Vec2 operator-(const Vec2& v1, const Vec2& v2) {
-  return Vec2(v1[0] - v2[0], v1[1] - v2[1]);
+inline Vec2f operator-(const Vec2f& v1, const Vec2f& v2) {
+  return Vec2f(v1[0] - v2[0], v1[1] - v2[1]);
 }
-inline Vec2 operator-(const Vec2& v1, float k) {
-  return Vec2(v1[0] - k, v1[1] - k);
+inline Vec2f operator-(const Vec2f& v1, float k) {
+  return Vec2f(v1[0] - k, v1[1] - k);
 }
-inline Vec2 operator-(float k, const Vec2& v2) {
-  return Vec2(k - v2[0], k - v2[1]);
+inline Vec2f operator-(float k, const Vec2f& v2) {
+  return Vec2f(k - v2[0], k - v2[1]);
 }
 
-inline Vec2 operator*(const Vec2& v1, const Vec2& v2) {
-  return Vec2(v1[0] * v2[0], v1[1] * v2[1]);
+inline Vec2f operator*(const Vec2f& v1, const Vec2f& v2) {
+  return Vec2f(v1[0] * v2[0], v1[1] * v2[1]);
 }
-inline Vec2 operator*(const Vec2& v1, float k) {
-  return Vec2(v1[0] * k, v1[1] * k);
+inline Vec2f operator*(const Vec2f& v1, float k) {
+  return Vec2f(v1[0] * k, v1[1] * k);
 }
-inline Vec2 operator*(float k, const Vec2& v2) { return v2 * k; }
+inline Vec2f operator*(float k, const Vec2f& v2) { return v2 * k; }
 
-inline Vec2 operator/(const Vec2& v1, const Vec2& v2) {
-  return Vec2(v1[0] / v2[0], v1[1] / v2[1]);
+inline Vec2f operator/(const Vec2f& v1, const Vec2f& v2) {
+  return Vec2f(v1[0] / v2[0], v1[1] / v2[1]);
 }
-inline Vec2 operator/(const Vec2& v1, float k) {
-  return Vec2(v1[0] / k, v1[1] / k);
+inline Vec2f operator/(const Vec2f& v1, float k) {
+  return Vec2f(v1[0] / k, v1[1] / k);
 }
-inline Vec2 operator/(float k, const Vec2& v2) {
-  return Vec2(k / v2[0], k / v2[1]);
+inline Vec2f operator/(float k, const Vec2f& v2) {
+  return Vec2f(k / v2[0], k / v2[1]);
 }
 
 struct Vec3 {
@@ -226,8 +226,8 @@ struct SurfaceInfo {
   Vec3 normal;
   Vec3 dpdu;
   Vec3 dpdv;
-  Vec2 texcoords;
-  Vec2 barycentric;
+  Vec2f texcoords;
+  Vec2f barycentric;
 };
 
 // forward declaration

@@ -97,7 +97,7 @@ int main() {
       const float v = (2.0f * i - height) / height;
       Ray ray;
       float pdf;
-      if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
+      if (camera.sampleRay(Vec2f(u, v), ray, pdf)) {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           // query photon map

@@ -62,7 +62,7 @@ class Sampler {
 
   virtual std::unique_ptr<Sampler> clone() const = 0;
   virtual float getNext1D() = 0;
-  virtual Vec2 getNext2D() = 0;
+  virtual Vec2f getNext2D() = 0;
 };
 
 // uniform distribution sampler
@@ -76,10 +76,10 @@ class UniformSampler : public Sampler {
   }
 
   float getNext1D() override { return rng.getNext(); }
-  Vec2 getNext2D() override { return Vec2(rng.getNext(), rng.getNext()); }
+  Vec2f getNext2D() override { return Vec2f(rng.getNext(), rng.getNext()); }
 };
 
-inline Vec3 sampleCosineHemisphere(const Vec2& uv, float& pdf) {
+inline Vec3 sampleCosineHemisphere(const Vec2f& uv, float& pdf) {
   const float theta =
       0.5f * std::acos(std::clamp(1.0f - 2.0f * uv[0], -1.0f, 1.0f));
   const float phi = PI_MUL_2 * uv[1];
@@ -88,16 +88,16 @@ inline Vec3 sampleCosineHemisphere(const Vec2& uv, float& pdf) {
   return sphericalToCartesian(theta, phi);
 }
 
-inline Vec3 sampleSphere(const Vec2& uv, float& pdf) {
+inline Vec3 sampleSphere(const Vec2f& uv, float& pdf) {
   const float theta = std::acos(std::clamp(1.0f - 2.0f * uv[0], -1.0f, 1.0f));
   const float phi = PI_MUL_2 * uv[1];
   pdf = PI_MUL_4_INV;
   return sphericalToCartesian(theta, phi);
 }
 
-inline Vec2 samplePlane(const Vec2& uv, float lx, float ly, float& pdf) {
+inline Vec2f samplePlane(const Vec2f& uv, float lx, float ly, float& pdf) {
   pdf = 1.0f / (lx * ly);
-  return Vec2(uv[0] * lx, uv[1] * ly);
+  return Vec2f(uv[0] * lx, uv[1] * ly);
 }
 
 #endif

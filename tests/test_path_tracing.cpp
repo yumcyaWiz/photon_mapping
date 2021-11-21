@@ -171,7 +171,7 @@ int main() {
         const float v = (2.0f * (i + sampler.getNext1D()) - height) / height;
         Ray ray;
         float pdf;
-        if (camera.sampleRay(Vec2(u, v), ray, pdf)) {
+        if (camera.sampleRay(Vec2f(u, v), ray, pdf)) {
           const Vec3 radiance = integrator.integrate(ray, scene, sampler) / pdf;
 
           if (std::isnan(radiance[0]) || std::isnan(radiance[1]) ||

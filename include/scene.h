@@ -48,8 +48,8 @@ class Scene {
   }
 
   // return vertex texcoords
-  Vec2 getVertexTexcoords(uint32_t vertexID) const {
-    return Vec2(texcoords[2 * vertexID + 0], texcoords[2 * vertexID + 1]);
+  Vec2f getVertexTexcoords(uint32_t vertexID) const {
+    return Vec2f(texcoords[2 * vertexID + 0], texcoords[2 * vertexID + 1]);
   }
 
   // return vertex indices of specified face
@@ -68,7 +68,7 @@ class Scene {
   }
 
   // compute normal of specified face, barycentric
-  Vec3 getFaceNormal(uint32_t faceID, const Vec2& barycentric) const {
+  Vec3 getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
     const VertexIndices vidx = getIndices(faceID);
     const Vec3 n1 = getVertexNormal(vidx.v1idx);
     const Vec3 n2 = getVertexNormal(vidx.v2idx);
@@ -78,11 +78,11 @@ class Scene {
   }
 
   // compute texcoords of specified face, barycentric
-  Vec2 getTexcoords(uint32_t faceID, const Vec2& barycentric) const {
+  Vec2f getTexcoords(uint32_t faceID, const Vec2f& barycentric) const {
     const VertexIndices vidx = getIndices(faceID);
-    const Vec2 t1 = getVertexTexcoords(vidx.v1idx);
-    const Vec2 t2 = getVertexTexcoords(vidx.v2idx);
-    const Vec2 t3 = getVertexTexcoords(vidx.v3idx);
+    const Vec2f t1 = getVertexTexcoords(vidx.v1idx);
+    const Vec2f t2 = getVertexTexcoords(vidx.v2idx);
+    const Vec2f t3 = getVertexTexcoords(vidx.v3idx);
     return t1 * (1.0f - barycentric[0] - barycentric[1]) + t2 * barycentric[0] +
            t3 * barycentric[1];
   }
@@ -143,7 +143,7 @@ class Scene {
 
         std::vector<Vec3> vertices;
         std::vector<Vec3> normals;
-        std::vector<Vec2> texcoords;
+        std::vector<Vec2f> texcoords;
 
         // loop over vertices
         // get vertices, normals, texcoords of a triangle
@@ -175,7 +175,7 @@ class Scene {
             const tinyobj::real_t ty =
                 attrib
                     .texcoords[2 * static_cast<size_t>(idx.texcoord_index) + 1];
-            texcoords.push_back(Vec2(tx, ty));
+            texcoords.push_back(Vec2f(tx, ty));
           }
         }
 
@@ -191,9 +191,9 @@ class Scene {
 
         // if texcoords is empty, add barycentric coords
         if (texcoords.size() == 0) {
-          texcoords.push_back(Vec2(0, 0));
-          texcoords.push_back(Vec2(1, 0));
-          texcoords.push_back(Vec2(0, 1));
+          texcoords.push_back(Vec2f(0, 0));
+          texcoords.push_back(Vec2f(1, 0));
+          texcoords.push_back(Vec2f(0, 1));
         }
 
         for (int i = 0; i < 3; ++i) {
@@ -295,7 +295,7 @@ class Scene {
 
       // set surface info
       info.surfaceInfo.position = ray(info.t);
-      info.surfaceInfo.barycentric = Vec2(rayhit.hit.u, rayhit.hit.v);
+      info.surfaceInfo.barycentric = Vec2f(rayhit.hit.u, rayhit.hit.v);
       info.surfaceInfo.texcoords =
           getTexcoords(rayhit.hit.primID, info.surfaceInfo.barycentric);
       info.surfaceInfo.normal =
