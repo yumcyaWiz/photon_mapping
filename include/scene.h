@@ -24,9 +24,6 @@ Material createMaterial(const tinyobj::material_t& material) {
 
 class Scene {
  private:
-  std::vector<Primitive> primitives;
-  std::vector<std::shared_ptr<Light>> lights;
-
   // triangles
   // NOTE: size of normals, texcoords == size of vertices
   std::vector<float> vertices;
@@ -36,6 +33,9 @@ class Scene {
 
   // materials
   std::vector<Material> materials;
+
+  // lights
+  std::vector<std::shared_ptr<Light>> lights;
 
   // embree
   RTCDevice device;
@@ -85,6 +85,13 @@ class Scene {
     const Vec2 t3 = getVertexTexcoords(vidx.v3idx);
     return t1 * (1.0f - barycentric[0] - barycentric[1]) + t2 * barycentric[0] +
            t3 * barycentric[1];
+  }
+
+  // get material of specified face
+  const Material* getMaterial(uint32_t faceID) const {
+    if (materials.size() > 0) {
+      return &materials[faceID];
+    }
   }
 
   void clear() {
@@ -225,10 +232,6 @@ class Scene {
   uint32_t nFaces() const { return indices.size() / 3; }
   uint32_t nMaterials() const { return materials.size(); }
 
-  void addPrimitive(const Primitive& primitive) {
-    primitives.push_back(primitive);
-  }
-
   void build() {
     spdlog::info("[Scene] building scene...", lights.size());
 
@@ -290,6 +293,7 @@ class Scene {
       info.t = rayhit.ray.tfar;
       info.primID = rayhit.hit.primID;
 
+      // set surface info
       info.surfaceInfo.position = ray(info.t);
       info.surfaceInfo.barycentric = Vec2(rayhit.hit.u, rayhit.hit.v);
       info.surfaceInfo.texcoords =
@@ -299,9 +303,9 @@ class Scene {
       orthonormalBasis(info.surfaceInfo.normal, info.surfaceInfo.dpdu,
                        info.surfaceInfo.dpdv);
 
-      if (materials.size() > 0) {
-        info.material = &materials[rayhit.hit.primID];
-      }
+      // set material
+      info.material = getMaterial(rayhit.hit.primID);
+
       return true;
     } else {
       return false;
