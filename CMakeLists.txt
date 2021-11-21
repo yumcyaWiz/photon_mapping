@@ -14,6 +14,14 @@ if(NOT OpenMP_CXX_FOUND)
     message(WARNING "failed to find OpenMP")
 endif()
 
+# Embree3
+find_package(embree 3.0 REQUIRED)
+if (${embree_FOUND})
+  message(STATUS "Found Embree")
+else()
+  message(FATAL_ERROR "Could not find Embree")
+endif()
+
 # externals
 add_subdirectory("externals")
 
@@ -26,6 +34,7 @@ set_target_properties(pm PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(pm INTERFACE spdlog::spdlog)
 target_link_libraries(pm INTERFACE OpenMP::OpenMP_CXX)
 target_link_libraries(pm INTERFACE tinyobjloader)
+target_link_libraries(pm INTERFACE embree)
 
 # examples
 add_subdirectory("examples")
