@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "core.h"
@@ -47,6 +48,8 @@ class Scene {
   std::vector<uint32_t> indices;
   std::vector<float> normals;
   std::vector<float> texcoords;
+
+  std::vector<std::optional<tinyobj::material_t>> materials;
 
   // triangles
   // NOTE: per face
@@ -120,7 +123,6 @@ class Scene {
     const auto& materials = reader.GetMaterials();
 
     // loop over shapes
-    // populate mesh data, shapes, bxdfs, lights, primitives
     for (size_t s = 0; s < shapes.size(); ++s) {
       size_t index_offset = 0;
       // loop over faces
@@ -183,6 +185,7 @@ class Scene {
           texcoords.push_back(Vec2f(0, 1));
         }
 
+        // populate vertices, indices, normals, texcoords
         for (int i = 0; i < 3; ++i) {
           this->vertices.push_back(vertices[i][0]);
           this->vertices.push_back(vertices[i][1]);
@@ -198,40 +201,51 @@ class Scene {
           this->indices.push_back(this->indices.size());
         }
 
-        // create triangle
-        this->triangles.emplace_back(this->vertices.data(),
-                                     this->indices.data(), this->normals.data(),
-                                     this->texcoords.data(), f);
-
-        // add bxdf
-        // TODO: remove duplicate
+        // populate materials
         const int materialID = shapes[s].mesh.material_ids[f];
+        std::optional<tinyobj::material_t> material = std::nullopt;
         if (materialID != -1) {
-          const tinyobj::material_t& m = materials[materialID];
-          this->bxdfs.push_back(createBxDF(m));
+          material = materials[materialID];
         }
-        // default material
-        else {
-          this->bxdfs.push_back(createDefaultBxDF());
-        }
-
-        // add light
-        std::shared_ptr<Light> light = nullptr;
-        if (materialID != -1) {
-          const tinyobj::material_t& m = materials[materialID];
-          light =
-              createAreaLight(m, &this->triangles[this->triangles.size() - 1]);
-          if (light != nullptr) {
-            lights.push_back(light);
-          }
-        }
-
-        // add primitive
-        primitives.emplace_back(&this->triangles[this->triangles.size() - 1],
-                                this->bxdfs[this->bxdfs.size() - 1], light);
+        this->materials.push_back(material);
 
         index_offset += fv;
       }
+    }
+
+    // populate triangles, bxdfs, lights, primitives
+    for (size_t faceID = 0; faceID < nFaces(); ++faceID) {
+      // add triangle
+      this->triangles.emplace_back(this->vertices.data(), this->indices.data(),
+                                   this->normals.data(), this->texcoords.data(),
+                                   faceID);
+
+      // add bxdf
+      // TODO: remove duplicate
+      const auto material = this->materials[faceID];
+      if (material) {
+        const tinyobj::material_t& m = material.value();
+        this->bxdfs.push_back(createBxDF(m));
+      }
+      // default material
+      else {
+        this->bxdfs.push_back(createDefaultBxDF());
+      }
+
+      // add light
+      std::shared_ptr<Light> light = nullptr;
+      if (material) {
+        const tinyobj::material_t& m = material.value();
+        light =
+            createAreaLight(m, &this->triangles[this->triangles.size() - 1]);
+        if (light != nullptr) {
+          lights.push_back(light);
+        }
+      }
+
+      // add primitive
+      primitives.emplace_back(&this->triangles[this->triangles.size() - 1],
+                              this->bxdfs[this->bxdfs.size() - 1], light);
     }
 
     spdlog::info("[Scene] vertices: {}", nVertices());
