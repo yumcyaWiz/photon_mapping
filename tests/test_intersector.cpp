@@ -1,31 +1,16 @@
 #include "camera.h"
 #include "image.h"
-#include "primitive.h"
 #include "scene.h"
 
 int main() {
   const int width = 512;
   const int height = 512;
 
-  const auto sphere_shape = std::make_shared<Sphere>(Vec3f(0, 1, 0), 1.0f);
-  const auto sphere2_shape = std::make_shared<Sphere>(Vec3f(-1, 1, -1), 1.0f);
-  const auto sphere3_shape = std::make_shared<Sphere>(Vec3f(1, 1, 1), 1.0f);
-  const auto floor_shape = std::make_shared<Plane>(
-      Vec3f(5, 0, -5), Vec3f(-10, 0, 0), Vec3f(0, 0, 10));
-
-  const Primitive floor(floor_shape, nullptr);
-  const Primitive sphere(sphere_shape, nullptr);
-  const Primitive sphere2(sphere2_shape, nullptr);
-  const Primitive sphere3(sphere3_shape, nullptr);
-
   Scene scene;
-  scene.addPrimitive(floor);
-  scene.addPrimitive(sphere);
-  scene.addPrimitive(sphere2);
-  scene.addPrimitive(sphere3);
+  scene.loadModel("CornellBox-Original.obj");
   scene.build();
 
-  Camera camera(Vec3f(0, 1, 5), Vec3f(0, 0, -1));
+  Camera camera(Vec3f(0, 1, 7), Vec3f(0, 0, -1), 0.25f * PI);
 
   Image image(width, height);
   for (int i = 0; i < height; ++i) {
