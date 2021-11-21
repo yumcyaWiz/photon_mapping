@@ -1,0 +1,4 @@
+# tinyobjloader
+add_library(tinyobjloader INTERFACE)
+target_compile_definitions(tinyobjloader INTERFACE TINYOBJLOADER_IMPLEMENTATION)
+target_include_directories(tinyobjloader SYSTEM INTERFACE tinyobjloader)

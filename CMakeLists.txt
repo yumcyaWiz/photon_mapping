@@ -14,6 +14,9 @@ if(NOT OpenMP_CXX_FOUND)
     message(WARNING "failed to find OpenMP")
 endif()
 
+# externals
+add_subdirectory("externals")
+
 # pm(photon_mapping)
 add_library(pm INTERFACE)
 target_include_directories(pm INTERFACE "include")
@@ -22,6 +25,7 @@ set_target_properties(pm PROPERTIES CXX_EXTENSIONS OFF)
 
 target_link_libraries(pm INTERFACE spdlog::spdlog)
 target_link_libraries(pm INTERFACE OpenMP::OpenMP_CXX)
+target_link_libraries(pm INTERFACE tinyobjloader)
 
 # examples
 add_subdirectory("examples")
