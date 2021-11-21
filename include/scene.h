@@ -213,13 +213,16 @@ class Scene {
       }
     }
 
-    // populate triangles, bxdfs, lights, primitives
+    // populate  triangles
     for (size_t faceID = 0; faceID < nFaces(); ++faceID) {
       // add triangle
       this->triangles.emplace_back(this->vertices.data(), this->indices.data(),
                                    this->normals.data(), this->texcoords.data(),
                                    faceID);
+    }
 
+    // populate bxdfs, lights, primitives
+    for (size_t faceID = 0; faceID < nFaces(); ++faceID) {
       // add bxdf
       // TODO: remove duplicate
       const auto material = this->materials[faceID];

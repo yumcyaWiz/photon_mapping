@@ -1,5 +1,7 @@
 #ifndef _INTEGRATOR_H
 #define _INTEGRATOR_H
+#include <omp.h>
+
 #include <optional>
 
 #include "core.h"
