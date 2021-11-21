@@ -62,8 +62,6 @@ class Triangle : public Shape {
            t3 * barycentric[1];
   }
 
-  float surfaceArea() const {}
-
  public:
   Triangle(const float* vertices, const uint32_t* indices, const float* normals,
            const float* texcoords, uint32_t faceID)
@@ -73,7 +71,7 @@ class Triangle : public Shape {
         texcoords(texcoords),
         faceID(faceID) {
     // compute surface area
-    const Vec3i vidx = getIndices(faceID);
+    const Vec3ui vidx = getIndices(faceID);
     const Vec3f p1 = getVertexPosition(vidx[0]);
     const Vec3f p2 = getVertexPosition(vidx[1]);
     const Vec3f p3 = getVertexPosition(vidx[2]);
@@ -83,7 +81,7 @@ class Triangle : public Shape {
   SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const override {
     SurfaceInfo ret;
 
-    const Vec3i vidx = getIndices(faceID);
+    const Vec3ui vidx = getIndices(faceID);
 
     const Vec3f p1 = getVertexPosition(vidx[0]);
     const Vec3f p2 = getVertexPosition(vidx[1]);
