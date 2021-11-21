@@ -221,7 +221,7 @@ class Scene {
                                    faceID);
     }
 
-    // populate bxdfs, lights, primitives
+    // populate bxdfs
     for (size_t faceID = 0; faceID < nFaces(); ++faceID) {
       // add bxdf
       // TODO: remove duplicate
@@ -234,9 +234,13 @@ class Scene {
       else {
         this->bxdfs.push_back(createDefaultBxDF());
       }
+    }
 
+    // populate lights, primitives
+    for (size_t faceID = 0; faceID < nFaces(); ++faceID) {
       // add light
       std::shared_ptr<Light> light = nullptr;
+      const auto material = this->materials[faceID];
       if (material) {
         const tinyobj::material_t& m = material.value();
         light = createAreaLight(m, &this->triangles[faceID]);
@@ -246,7 +250,8 @@ class Scene {
       }
 
       // add primitive
-      primitives.emplace_back(&this->triangles[faceID], this->bxdfs[this->bxdfs.size() - 1], light);
+      primitives.emplace_back(&this->triangles[faceID], this->bxdfs[faceID],
+                              light);
     }
 
     spdlog::info("[Scene] vertices: {}", nVertices());
