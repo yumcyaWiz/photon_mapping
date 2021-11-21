@@ -288,7 +288,6 @@ class Scene {
 
     if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
       info.t = rayhit.ray.tfar;
-      info.primID = rayhit.hit.primID;
 
       // get triangle shape
       const Triangle& tri = this->triangles[rayhit.hit.primID];
@@ -302,8 +301,8 @@ class Scene {
       orthonormalBasis(info.surfaceInfo.normal, info.surfaceInfo.dpdu,
                        info.surfaceInfo.dpdv);
 
-      // set material
-      info.material = getMaterial(rayhit.hit.primID);
+      // set primitive
+      info.hitPrimitive = &this->primitives[rayhit.hit.primID];
 
       return true;
     } else {
