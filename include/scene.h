@@ -53,36 +53,27 @@ class Scene {
   }
 
   // return vertex indices of specified face
-  // TODO: use Vec3i
-  struct VertexIndices {
-    uint32_t v1idx;
-    uint32_t v2idx;
-    uint32_t v3idx;
-  };
-  VertexIndices getIndices(uint32_t faceID) const {
-    VertexIndices ret;
-    ret.v1idx = indices[3 * faceID + 0];
-    ret.v2idx = indices[3 * faceID + 1];
-    ret.v3idx = indices[3 * faceID + 2];
-    return ret;
+  Vec3i getIndices(uint32_t faceID) const {
+    return Vec3i(indices[3 * faceID + 0], indices[3 * faceID + 1],
+                 indices[3 * faceID + 2]);
   }
 
   // compute normal of specified face, barycentric
   Vec3f getFaceNormal(uint32_t faceID, const Vec2f& barycentric) const {
-    const VertexIndices vidx = getIndices(faceID);
-    const Vec3f n1 = getVertexNormal(vidx.v1idx);
-    const Vec3f n2 = getVertexNormal(vidx.v2idx);
-    const Vec3f n3 = getVertexNormal(vidx.v3idx);
+    const Vec3i vidx = getIndices(faceID);
+    const Vec3f n1 = getVertexNormal(vidx[0]);
+    const Vec3f n2 = getVertexNormal(vidx[1]);
+    const Vec3f n3 = getVertexNormal(vidx[2]);
     return n1 * (1.0f - barycentric[0] - barycentric[1]) + n2 * barycentric[0] +
            n3 * barycentric[1];
   }
 
   // compute texcoords of specified face, barycentric
   Vec2f getTexcoords(uint32_t faceID, const Vec2f& barycentric) const {
-    const VertexIndices vidx = getIndices(faceID);
-    const Vec2f t1 = getVertexTexcoords(vidx.v1idx);
-    const Vec2f t2 = getVertexTexcoords(vidx.v2idx);
-    const Vec2f t3 = getVertexTexcoords(vidx.v3idx);
+    const Vec3i vidx = getIndices(faceID);
+    const Vec2f t1 = getVertexTexcoords(vidx[0]);
+    const Vec2f t2 = getVertexTexcoords(vidx[1]);
+    const Vec2f t3 = getVertexTexcoords(vidx[2]);
     return t1 * (1.0f - barycentric[0] - barycentric[1]) + t2 * barycentric[0] +
            t3 * barycentric[1];
   }
