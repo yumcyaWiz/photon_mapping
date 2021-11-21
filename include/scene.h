@@ -11,31 +11,58 @@
 #include "primitive.h"
 #include "tiny_obj_loader.h"
 
-// create material from tinyobj material
-Material createMaterial(const tinyobj::material_t& material) {
+const std::shared_ptr<BxDF> createDefaultBxDF() {
+  return std::make_shared<Lambert>(Vec3(0.9f));
+}
+
+// create BxDF from tinyobj material
+const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
   const Vec3f kd =
       Vec3f(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
   const Vec3f ks =
       Vec3f(material.specular[0], material.specular[1], material.specular[2]);
   const Vec3f ke =
       Vec3f(material.emission[0], material.emission[1], material.emission[2]);
-  return Material(kd, ks, ke);
+  return std::make_shared<Lambert>(kd);
+}
+
+// create AreaLight from tinyobj material
+const std::shared_ptr<AreaLight> createAreaLight(
+    const tinyobj::material_t& material, const std::shared_ptr<Shape>& shape) {
+  if (material.emission[0] > 0 || material.emission[1] > 0 ||
+      material.emission[2] > 0) {
+    const Vec3f le =
+        Vec3f(material.emission[0], material.emission[1], material.emission[2]);
+    return std::make_shared<AreaLight>(le, shape);
+  } else {
+    return nullptr;
+  }
 }
 
 class Scene {
  private:
-  // triangles
-  // NOTE: size of normals, texcoords == size of vertices
+  // mesh data
+  // NOTE: assuming size of normals, texcoords == size of vertices
   std::vector<float> vertices;
   std::vector<uint32_t> indices;
   std::vector<float> normals;
   std::vector<float> texcoords;
 
-  // materials
-  std::vector<Material> materials;
+  // shapes
+  // NOTE: per face
+  std::vector<std::shared_ptr<Shape>> shapes;
+
+  // BxDFs
+  // NOTE: per face
+  std::vector<std::shared_ptr<BxDF>> bxdfs;
 
   // lights
+  // NOTE: per face
   std::vector<std::shared_ptr<Light>> lights;
+
+  // primitives
+  // NOTE: per face
+  std::vector<Primitive> primitives;
 
   // embree
   RTCDevice device;
@@ -78,23 +105,27 @@ class Scene {
            t3 * barycentric[1];
   }
 
-  // get material of specified face
-  const Material* getMaterial(uint32_t faceID) const {
-    if (materials.size() > 0) {
-      return &materials[faceID];
-    }
-  }
+  bool hasLight(uint32_t faceID) const { return lights[faceID] != nullptr; }
 
   void clear() {
     vertices.clear();
     indices.clear();
     normals.clear();
     texcoords.clear();
-    materials.clear();
+    bxdfs.clear();
+
+    shapes.clear();
+    bxdfs.clear();
+    lights.clear();
+    primitives.clear();
+
+    rtcReleaseScene(scene);
+    rtcReleaseDevice(device);
   }
 
  public:
   Scene() {}
+  ~Scene() { clear(); }
 
   // load obj file
   // TODO: remove vertex duplication
@@ -125,6 +156,7 @@ class Scene {
     const auto& materials = reader.GetMaterials();
 
     // loop over shapes
+    // populate mesh data, bxdfs, lights
     for (size_t s = 0; s < shapes.size(); ++s) {
       size_t index_offset = 0;
       // loop over faces
@@ -202,13 +234,36 @@ class Scene {
           this->indices.push_back(this->indices.size());
         }
 
-        // add material
+        // create triangle shape
+        const auto tri_shape =
+            std::make_shared<Triangle>(&this->vertices, &this->indices,
+                                       &this->normals, &this->texcoords, f);
+        this->shapes.push_back(tri_shape);
+
+        // add bxdf
         // TODO: remove duplicate
         const int materialID = shapes[s].mesh.material_ids[f];
         if (materialID != -1) {
           const tinyobj::material_t& m = materials[materialID];
-          this->materials.push_back(createMaterial(m));
+          this->bxdfs.push_back(createBxDF(m));
         }
+        // default material
+        else {
+          this->bxdfs.push_back(createDefaultBxDF());
+        }
+
+        // add light
+        if (materialID != -1) {
+          const tinyobj::material_t& m = materials[materialID];
+          lights.push_back(createAreaLight(m, tri_shape));
+        } else {
+          lights.push_back(nullptr);
+        }
+
+        // add primitive
+        primitives.emplace_back(this->shapes[this->shapes.size() - 1],
+                                this->bxdfs[this->bxdfs.size() - 1],
+                                this->lights[this->lights.size() - 1]);
 
         index_offset += fv;
       }
@@ -221,7 +276,7 @@ class Scene {
 
   uint32_t nVertices() const { return vertices.size() / 3; }
   uint32_t nFaces() const { return indices.size() / 3; }
-  uint32_t nMaterials() const { return materials.size(); }
+  uint32_t nMaterials() const { return bxdfs.size(); }
 
   void build() {
     spdlog::info("[Scene] building scene...", lights.size());

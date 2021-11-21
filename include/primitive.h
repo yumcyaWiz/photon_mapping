@@ -28,14 +28,6 @@ class Primitive {
     return areaLight->Le(surfInfo, dir);
   }
 
-  bool intersect(const Ray& ray, IntersectInfo& info) const {
-    if (shape->intersect(ray, info)) {
-      info.hitPrimitive = this;
-      return true;
-    }
-    return false;
-  }
-
   BxDFType getBxDFType() const { return bxdf->getType(); }
 
   Vec3f evaluateBxDF(const Vec3f& wo, const Vec3f& wi,
