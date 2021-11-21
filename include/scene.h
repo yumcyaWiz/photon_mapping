@@ -28,12 +28,12 @@ const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
 
 // create AreaLight from tinyobj material
 const std::shared_ptr<AreaLight> createAreaLight(
-    const tinyobj::material_t& material, const std::shared_ptr<Shape>& shape) {
+    const tinyobj::material_t& material, const Triangle& tri) {
   if (material.emission[0] > 0 || material.emission[1] > 0 ||
       material.emission[2] > 0) {
     const Vec3f le =
         Vec3f(material.emission[0], material.emission[1], material.emission[2]);
-    return std::make_shared<AreaLight>(le, shape);
+    return std::make_shared<AreaLight>(le, tri);
   } else {
     return nullptr;
   }
@@ -48,9 +48,9 @@ class Scene {
   std::vector<float> normals;
   std::vector<float> texcoords;
 
-  // shapes
+  // triangles
   // NOTE: per face
-  std::vector<std::shared_ptr<Shape>> shapes;
+  std::vector<Triangle> triangles;
 
   // BxDFs
   // NOTE: per face
@@ -114,7 +114,7 @@ class Scene {
     texcoords.clear();
     bxdfs.clear();
 
-    shapes.clear();
+    triangles.clear();
     bxdfs.clear();
     lights.clear();
     primitives.clear();
@@ -234,11 +234,9 @@ class Scene {
           this->indices.push_back(this->indices.size());
         }
 
-        // create triangle shape
-        const auto tri_shape =
-            std::make_shared<Triangle>(&this->vertices, &this->indices,
-                                       &this->normals, &this->texcoords, f);
-        this->shapes.push_back(tri_shape);
+        // create triangle
+        this->triangles.emplace_back(&this->vertices, &this->indices,
+                                     &this->normals, &this->texcoords, f);
 
         // add bxdf
         // TODO: remove duplicate
@@ -255,13 +253,14 @@ class Scene {
         // add light
         if (materialID != -1) {
           const tinyobj::material_t& m = materials[materialID];
-          lights.push_back(createAreaLight(m, tri_shape));
+          lights.push_back(
+              createAreaLight(m, this->triangles[this->triangles.size() - 1]));
         } else {
           lights.push_back(nullptr);
         }
 
         // add primitive
-        primitives.emplace_back(this->shapes[this->shapes.size() - 1],
+        primitives.emplace_back(this->triangles[this->triangles.size() - 1],
                                 this->bxdfs[this->bxdfs.size() - 1],
                                 this->lights[this->lights.size() - 1]);
 
@@ -328,11 +327,14 @@ class Scene {
       info.t = rayhit.ray.tfar;
       info.primID = rayhit.hit.primID;
 
+      // get triangle shape
+      const Triangle& tri = this->triangles[rayhit.hit.primID];
+
       // set surface info
       info.surfaceInfo.position = ray(info.t);
       info.surfaceInfo.barycentric = Vec2f(rayhit.hit.u, rayhit.hit.v);
       info.surfaceInfo.texcoords =
-          getTexcoords(rayhit.hit.primID, info.surfaceInfo.barycentric);
+          tri.getTexcoords(rayhit.hit.primID, info.surfaceInfo.barycentric);
       info.surfaceInfo.normal =
           getFaceNormal(rayhit.hit.primID, info.surfaceInfo.barycentric);
       orthonormalBasis(info.surfaceInfo.normal, info.surfaceInfo.dpdu,

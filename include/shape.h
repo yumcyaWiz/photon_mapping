@@ -3,12 +3,7 @@
 #include "core.h"
 #include "sampler.h"
 
-class Shape {
- public:
-  virtual SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const = 0;
-};
-
-class Triangle : public Shape {
+class Triangle {
  private:
   const float* vertices;
   const uint32_t* indices;
@@ -18,6 +13,22 @@ class Triangle : public Shape {
   const uint32_t faceID;
 
   float surfaceArea;
+
+ public:
+  Triangle(const float* vertices, const uint32_t* indices, const float* normals,
+           const float* texcoords, uint32_t faceID)
+      : vertices(vertices),
+        indices(indices),
+        normals(normals),
+        texcoords(texcoords),
+        faceID(faceID) {
+    // compute surface area
+    const Vec3ui vidx = getIndices(faceID);
+    const Vec3f p1 = getVertexPosition(vidx[0]);
+    const Vec3f p2 = getVertexPosition(vidx[1]);
+    const Vec3f p3 = getVertexPosition(vidx[2]);
+    surfaceArea = 0.5f * length(cross(p2 - p1, p3 - p1));
+  }
 
   // return vertex position
   Vec3f getVertexPosition(uint32_t vertexID) const {
@@ -62,23 +73,8 @@ class Triangle : public Shape {
            t3 * barycentric[1];
   }
 
- public:
-  Triangle(const float* vertices, const uint32_t* indices, const float* normals,
-           const float* texcoords, uint32_t faceID)
-      : vertices(vertices),
-        indices(indices),
-        normals(normals),
-        texcoords(texcoords),
-        faceID(faceID) {
-    // compute surface area
-    const Vec3ui vidx = getIndices(faceID);
-    const Vec3f p1 = getVertexPosition(vidx[0]);
-    const Vec3f p2 = getVertexPosition(vidx[1]);
-    const Vec3f p3 = getVertexPosition(vidx[2]);
-    surfaceArea = 0.5f * length(cross(p2 - p1, p3 - p1));
-  }
-
-  SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const override {
+  // sample point on triangle
+  SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const {
     SurfaceInfo ret;
 
     const Vec3ui vidx = getIndices(faceID);
