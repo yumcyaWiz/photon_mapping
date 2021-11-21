@@ -33,7 +33,64 @@ struct Vec2 {
 
   float operator[](int i) const { return v[i]; }
   float& operator[](int i) { return v[i]; }
+
+  Vec2 operator-() const { return Vec2(-v[0], -v[1]); }
+
+  Vec2& operator+=(const Vec2& v) {
+    for (int i = 0; i < 2; ++i) {
+      this->v[i] += v[i];
+    }
+    return *this;
+  }
+  Vec2& operator*=(const Vec2& v) {
+    for (int i = 0; i < 2; ++i) {
+      this->v[i] *= v[i];
+    }
+    return *this;
+  }
+  Vec2& operator/=(const Vec2& v) {
+    for (int i = 0; i < 2; ++i) {
+      this->v[i] /= v[i];
+    }
+    return *this;
+  }
 };
+
+inline Vec2 operator+(const Vec2& v1, const Vec2& v2) {
+  return Vec2(v1[0] + v2[0], v1[1] + v2[1]);
+}
+inline Vec2 operator+(const Vec2& v1, float k) {
+  return Vec2(v1[0] + k, v1[1] + k);
+}
+inline Vec2 operator+(float k, const Vec2& v2) { return v2 + k; }
+
+inline Vec2 operator-(const Vec2& v1, const Vec2& v2) {
+  return Vec2(v1[0] - v2[0], v1[1] - v2[1]);
+}
+inline Vec2 operator-(const Vec2& v1, float k) {
+  return Vec2(v1[0] - k, v1[1] - k);
+}
+inline Vec2 operator-(float k, const Vec2& v2) {
+  return Vec2(k - v2[0], k - v2[1]);
+}
+
+inline Vec2 operator*(const Vec2& v1, const Vec2& v2) {
+  return Vec2(v1[0] * v2[0], v1[1] * v2[1]);
+}
+inline Vec2 operator*(const Vec2& v1, float k) {
+  return Vec2(v1[0] * k, v1[1] * k);
+}
+inline Vec2 operator*(float k, const Vec2& v2) { return v2 * k; }
+
+inline Vec2 operator/(const Vec2& v1, const Vec2& v2) {
+  return Vec2(v1[0] / v2[0], v1[1] / v2[1]);
+}
+inline Vec2 operator/(const Vec2& v1, float k) {
+  return Vec2(v1[0] / k, v1[1] / k);
+}
+inline Vec2 operator/(float k, const Vec2& v2) {
+  return Vec2(k / v2[0], k / v2[1]);
+}
 
 struct Vec3 {
   float v[3];
