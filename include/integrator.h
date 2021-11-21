@@ -277,7 +277,7 @@ class PhotonMapping : public Integrator {
       // if hitting specular surface, generate next ray and continue
       // raytracing
       else if (bxdf_type == BxDFType::SPECULAR) {
-        if (depth >= 3) {
+        if (depth >= 5) {
           // sample direction by BxDF
           Vec3f dir;
           float pdf_dir;
