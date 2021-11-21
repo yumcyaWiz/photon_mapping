@@ -12,6 +12,7 @@
 #include "primitive.h"
 #include "tiny_obj_loader.h"
 
+// create default BxDF
 const std::shared_ptr<BxDF> createDefaultBxDF() {
   return std::make_shared<Lambert>(Vec3(0.9f));
 }
@@ -24,7 +25,20 @@ const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
       Vec3f(material.specular[0], material.specular[1], material.specular[2]);
   const Vec3f ke =
       Vec3f(material.emission[0], material.emission[1], material.emission[2]);
-  return std::make_shared<Lambert>(Vec3(0.9f));
+
+  switch (material.illum) {
+    case 2:
+      // lambert
+      return std::make_shared<Lambert>(kd);
+    case 5:
+      // mirror
+      return std::make_shared<Mirror>(Vec3(1.0f));
+    case 7:
+      // glass
+      return std::make_shared<Glass>(Vec3(1.0f), material.ior);
+    default:
+      return std::make_shared<Lambert>(kd);
+  }
 }
 
 // create AreaLight from tinyobj material
