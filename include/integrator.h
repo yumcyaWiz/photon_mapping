@@ -31,6 +31,7 @@ class PathTracing : public Integrator {
 
   Vec3f integrate(const Ray& ray_in, const Scene& scene,
                   Sampler& sampler) const override {
+    Vec3f radiance(0);
     Ray ray = ray_in;
     Vec3f throughput(1, 1, 1);
 
@@ -50,8 +51,8 @@ class PathTracing : public Integrator {
 
         // Le
         if (info.hitPrimitive->hasAreaLight()) {
-          return throughput *
-                 info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
+          radiance += throughput *
+                      info.hitPrimitive->Le(info.surfaceInfo, -ray.direction);
         }
 
         // sample direction by BxDF
@@ -68,7 +69,7 @@ class PathTracing : public Integrator {
       }
     }
 
-    return Vec3f(0);
+    return radiance;
   }
 };
 
