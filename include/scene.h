@@ -26,9 +26,6 @@ const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
       Vec3f(material.specular[0], material.specular[1], material.specular[2]);
 
   switch (material.illum) {
-    case 2:
-      // lambert
-      return std::make_shared<Lambert>(kd);
     case 5:
       // mirror
       return std::make_shared<Mirror>(Vec3(1.0f));
@@ -36,6 +33,7 @@ const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
       // glass
       return std::make_shared<Glass>(Vec3(1.0f), material.ior);
     default:
+      // lambert
       return std::make_shared<Lambert>(kd);
   }
 }

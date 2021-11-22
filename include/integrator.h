@@ -454,6 +454,13 @@ class PhotonMapping : public Integrator {
           IntersectInfo info;
           if (scene.intersect(ray, info)) {
             const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
+
+            // break when hitting diffuse surface without previous specular
+            if (!prev_specular && bxdf_type == BxDFType::DIFFUSE) {
+              break;
+            }
+
+            // add photon when hitting diffuse surface after specular
             if (prev_specular && bxdf_type == BxDFType::DIFFUSE &&
                 !info.hitPrimitive->hasAreaLight()) {
               // TODO: remove lock to get more speed
@@ -462,8 +469,6 @@ class PhotonMapping : public Integrator {
                 photons.emplace_back(throughput, info.surfaceInfo.position,
                                      -ray.direction);
               }
-
-              // break after the first diffuse surface
               break;
             }
 
