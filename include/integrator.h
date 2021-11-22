@@ -80,6 +80,7 @@ class PhotonMapping : public Integrator {
   const int nEstimationGlobal;
   const int nPhotonsCaustics;
   const int nEstimationCaustics;
+  const int strictCalcDepth;
   const int maxDepth;
   bool finalGathering;
 
@@ -258,7 +259,7 @@ class PhotonMapping : public Integrator {
       // if hitting diffuse surface, computed reflected radiance with photon
       // map
       if (bxdf_type == BxDFType::DIFFUSE) {
-        if (!finalGathering) {
+        if (!finalGathering || depth > strictCalcDepth) {
           return computeRadianceWithPhotonMap(-ray.direction, info);
         } else {
           // compute direct illumination by explicit light sampling
@@ -330,11 +331,12 @@ class PhotonMapping : public Integrator {
  public:
   PhotonMapping(int nPhotonsGlobal, int nEstimationGlobal,
                 float nPhotonsCausticsMultiplier, int nEstimationCaustics,
-                bool finalGathering, int maxDepth)
+                int strictCalcDepth, bool finalGathering, int maxDepth)
       : nPhotonsGlobal(nPhotonsGlobal),
         nEstimationGlobal(nEstimationGlobal),
         nPhotonsCaustics(nPhotonsGlobal * nPhotonsCausticsMultiplier),
         nEstimationCaustics(nEstimationCaustics),
+        strictCalcDepth(strictCalcDepth),
         finalGathering(finalGathering),
         maxDepth(maxDepth) {}
 
