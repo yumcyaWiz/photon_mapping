@@ -7,19 +7,19 @@
 int main() {
   const int width = 512;
   const int height = 512;
-  const int n_samples = 100;
+  const int n_samples = 256;
   const int n_photons = 100000;
   const int n_estimation_global = 100;
   const float n_photons_caustics_multiplier = 100;
   const int n_estimation_caustics = 100;
-  const int final_gathering_depth = 3;
+  const int final_gathering_depth = 4;
   const int max_depth = 100;
 
   Image image(width, height);
   Camera camera(Vec3f(0, 1, 6), Vec3f(0, 0, -1), 0.25 * PI);
 
   Scene scene;
-  scene.loadModel("CornellBox-Water.obj");
+  scene.loadModel("cornellbox-water2.obj");
   scene.build();
 
   // photon tracing and build photon map
