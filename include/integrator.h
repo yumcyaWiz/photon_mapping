@@ -278,7 +278,7 @@ class PhotonMapping : public Integrator {
       // if hitting specular surface, generate next ray and continue
       // raytracing
       else if (bxdf_type == BxDFType::SPECULAR) {
-        if (depth >= 5) {
+        if (depth >= 3) {
           // sample direction by BxDF
           Vec3f dir;
           float pdf_dir;
@@ -379,8 +379,7 @@ class PhotonMapping : public Integrator {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
           const BxDFType bxdf_type = info.hitPrimitive->getBxDFType();
-          if (bxdf_type == BxDFType::DIFFUSE &&
-              !info.hitPrimitive->hasAreaLight()) {
+          if (bxdf_type == BxDFType::DIFFUSE) {
             // TODO: remove lock to get more speed
 #pragma omp critical
             {
@@ -462,8 +461,7 @@ class PhotonMapping : public Integrator {
             }
 
             // add photon when hitting diffuse surface after specular
-            if (prev_specular && bxdf_type == BxDFType::DIFFUSE &&
-                !info.hitPrimitive->hasAreaLight()) {
+            if (prev_specular && bxdf_type == BxDFType::DIFFUSE) {
               // TODO: remove lock to get more speed
 #pragma omp critical
               {
