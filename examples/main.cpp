@@ -12,8 +12,7 @@ int main() {
   const int n_estimation_global = 100;
   const float n_photons_caustics_multiplier = 100;
   const int n_estimation_caustics = 100;
-  const bool final_gathering = true;
-  const int strict_calc_depth = 3;
+  const int final_gathering_depth = 3;
   const int max_depth = 100;
 
   Image image(width, height);
@@ -26,7 +25,7 @@ int main() {
   // photon tracing and build photon map
   PhotonMapping integrator(n_photons, n_estimation_global,
                            n_photons_caustics_multiplier, n_estimation_caustics,
-                           strict_calc_depth, final_gathering, max_depth);
+                           final_gathering_depth, max_depth);
   UniformSampler sampler;
   integrator.build(scene, sampler);
 

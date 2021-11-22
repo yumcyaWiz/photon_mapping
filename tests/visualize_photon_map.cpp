@@ -20,7 +20,7 @@ int main() {
   scene.build();
 
   // photon tracing and build photon map
-  PhotonMapping integrator(n_photons, 1, 0, 0, 0, false, max_depth);
+  PhotonMapping integrator(n_photons, 1, 0, 0, 0, max_depth);
   UniformSampler sampler;
   integrator.build(scene, sampler);
 

@@ -80,9 +80,8 @@ class PhotonMapping : public Integrator {
   const int nEstimationGlobal;
   const int nPhotonsCaustics;
   const int nEstimationCaustics;
-  const int strictCalcDepth;
+  const int finalGatheringDepth;
   const int maxDepth;
-  bool finalGathering;
 
   PhotonMap globalPhotonMap;
   PhotonMap causticsPhotonMap;
@@ -259,7 +258,7 @@ class PhotonMapping : public Integrator {
       // if hitting diffuse surface, computed reflected radiance with photon
       // map
       if (bxdf_type == BxDFType::DIFFUSE) {
-        if (!finalGathering || depth > strictCalcDepth) {
+        if (depth >= finalGatheringDepth) {
           return computeRadianceWithPhotonMap(-ray.direction, info);
         } else {
           // compute direct illumination by explicit light sampling
@@ -331,13 +330,12 @@ class PhotonMapping : public Integrator {
  public:
   PhotonMapping(int nPhotonsGlobal, int nEstimationGlobal,
                 float nPhotonsCausticsMultiplier, int nEstimationCaustics,
-                int strictCalcDepth, bool finalGathering, int maxDepth)
+                int strictCalcDepth, int maxDepth)
       : nPhotonsGlobal(nPhotonsGlobal),
         nEstimationGlobal(nEstimationGlobal),
         nPhotonsCaustics(nPhotonsGlobal * nPhotonsCausticsMultiplier),
         nEstimationCaustics(nEstimationCaustics),
-        strictCalcDepth(strictCalcDepth),
-        finalGathering(finalGathering),
+        finalGatheringDepth(strictCalcDepth),
         maxDepth(maxDepth) {}
 
   const PhotonMap* getPhotonMapPtr() const { return &globalPhotonMap; }
@@ -425,7 +423,7 @@ class PhotonMapping : public Integrator {
     globalPhotonMap.build();
 
     // build caustics photon map
-    if (finalGathering) {
+    if (finalGatheringDepth > 0) {
       photons.clear();
 
       // photon tracing
