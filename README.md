@@ -33,6 +33,14 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
+## Run
+
+place `obj` model under `build` and run
+
+```
+./examples/main
+```
+
 ## Structure
 
 |Name|Description|
@@ -40,8 +48,9 @@ make
 |`include/camera.h`|ray generation from camera|
 |`include/core.h`|basic data types|
 |`include/image.h`|image|
-|`include/integrator.h`|implement photon mapping, path tracing(for reference)|
+|`include/integrator.h`|implementation of photon mapping, path tracing(for reference)|
 |`include/light.h`|light|
+|`include/material.h`|implementation of BRDF, BTDFs|
 |`include/photon_map.h`|implementation of photon map with kdtree|
 |`include/primitive.h`|primitive|
 |`include/sampler.h`|random number generation, sampling utilities|
@@ -93,6 +102,8 @@ make
 |number of samples|256|
 
 ![](img/cornellbox-water3.png)
+
+This model is available under `models/`
 
 ## Externals
 
