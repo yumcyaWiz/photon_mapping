@@ -79,6 +79,8 @@ class UniformSampler : public Sampler {
   Vec2f getNext2D() override { return Vec2f(rng.getNext(), rng.getNext()); }
 };
 
+// sample direction in the hemisphere
+// its pdf is propotional to cosine
 inline Vec3f sampleCosineHemisphere(const Vec2f& uv, float& pdf) {
   const float theta =
       0.5f * std::acos(std::clamp(1.0f - 2.0f * uv[0], -1.0f, 1.0f));
@@ -86,18 +88,6 @@ inline Vec3f sampleCosineHemisphere(const Vec2f& uv, float& pdf) {
   const float cosTheta = std::cos(theta);
   pdf = PI_INV * cosTheta;
   return sphericalToCartesian(theta, phi);
-}
-
-inline Vec3f sampleSphere(const Vec2f& uv, float& pdf) {
-  const float theta = std::acos(std::clamp(1.0f - 2.0f * uv[0], -1.0f, 1.0f));
-  const float phi = PI_MUL_2 * uv[1];
-  pdf = PI_MUL_4_INV;
-  return sphericalToCartesian(theta, phi);
-}
-
-inline Vec2f samplePlane(const Vec2f& uv, float lx, float ly, float& pdf) {
-  pdf = 1.0f / (lx * ly);
-  return Vec2f(uv[0] * lx, uv[1] * ly);
 }
 
 #endif
