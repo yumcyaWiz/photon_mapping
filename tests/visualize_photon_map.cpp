@@ -41,8 +41,10 @@ int main() {
         if (scene.intersect(ray, info)) {
           // query photon map
           float r2;
-          const int photon_idx =
-              photon_map->queryNearestPhoton(info.surfaceInfo.position, r2);
+          const std::vector<int> photon_indices =
+              photon_map->queryKNearestPhotons(info.surfaceInfo.position, 1,
+                                               r2);
+          const int photon_idx = photon_indices[0];
 
           // if distance to the photon is small enough, write photon's
           // throughput to the image

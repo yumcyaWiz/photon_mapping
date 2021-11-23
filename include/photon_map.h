@@ -146,44 +146,6 @@ class KdTree {
     }
   }
 
-  template <typename PointU>
-  requires Point<PointU>
-  void sphericalRangeSearchNode(int nodeIdx, const PointU& queryPoint, float r,
-                                std::vector<int>& list) const {
-    if (nodeIdx >= nodes.size()) return;
-
-    const Node& node = nodes[nodeIdx];
-
-    // median point
-    const PointT& median = points[node.idx];
-
-    // if distance from query point to median point is smaller than radius, add
-    // median point to list
-    const float dist2 = distance2(queryPoint, median);
-    if (dist2 < r * r) {
-      list.push_back(node.idx);
-    }
-
-    // if query point is lower than median, search left child
-    // else, search right child
-    const bool isLower = queryPoint[node.axis] < median[node.axis];
-    if (isLower) {
-      sphericalRangeSearchNode(node.leftChildIdx, queryPoint, r, list);
-    } else {
-      sphericalRangeSearchNode(node.rightChildIdx, queryPoint, r, list);
-    }
-
-    // at leaf node, if sphere overlaps sibblings region, search sibbligs
-    const float dist_to_siblings = median[node.axis] - queryPoint[node.axis];
-    if (r * r > dist_to_siblings * dist_to_siblings) {
-      if (isLower) {
-        sphericalRangeSearchNode(node.rightChildIdx, queryPoint, r, list);
-      } else {
-        sphericalRangeSearchNode(node.leftChildIdx, queryPoint, r, list);
-      }
-    }
-  }
-
  public:
   KdTree() {}
 
@@ -219,23 +181,6 @@ class KdTree {
 
     return ret;
   }
-
-  // range search with radius r sphere centered at query point
-  template <typename PointU>
-  requires Point<PointU> std::vector<int> sphericalRangeSearch(
-      const PointU& queryPoint, float r, float& maxDist2)
-  const {
-    std::vector<int> ret;
-    sphericalRangeSearchNode(0, queryPoint, r, ret);
-
-    // TODO: compute this in sphericalRangeSearchNode
-    maxDist2 = 0;
-    for (int i = 0; i < ret.size(); ++i) {
-      maxDist2 = std::max(maxDist2, distance2(queryPoint, points[ret[i]]));
-    }
-
-    return ret;
-  }
 };
 
 class PhotonMap {
@@ -260,19 +205,9 @@ class PhotonMap {
     kdtree.buildTree();
   }
 
-  int queryNearestPhoton(const Vec3f& p, float& max_dist2) const {
-    std::vector<int> indices = kdtree.searchKNearest(p, 1, max_dist2);
-    return indices[0];
-  }
-
   std::vector<int> queryKNearestPhotons(const Vec3f& p, int k,
                                         float& max_dist2) const {
     return kdtree.searchKNearest(p, k, max_dist2);
-  }
-
-  std::vector<int> querySphericalNeighborPhotons(const Vec3f& p, float r,
-                                                 float& max_dist2) const {
-    return kdtree.sphericalRangeSearch(p, r, max_dist2);
   }
 };
 
