@@ -5,16 +5,6 @@
 #include "core.h"
 #include "sampler.h"
 
-class Material {
- public:
-  const Vec3f kd;
-  const Vec3f ks;
-  const Vec3f ke;
-
-  Material(const Vec3f& kd, const Vec3f& ks, const Vec3f& ke)
-      : kd(kd), ks(ks), ke(ke) {}
-};
-
 enum class BxDFType { DIFFUSE, SPECULAR };
 
 using DirectionPair = std::pair<Vec3f, Vec3f>;
