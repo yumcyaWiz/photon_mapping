@@ -8,11 +8,11 @@
 #include "core.h"
 
 struct Photon {
-  Vec3f throughput;  // F*G/pdf
+  Vec3f throughput;  // BxDF * Geometric Term / pdf
   Vec3f position;
   Vec3f wi;  // incident direction
 
-  // implement Point
+  // implementation of Point concept
   static constexpr int dim = 3;
   float operator[](int i) const { return position[i]; }
 
@@ -21,13 +21,14 @@ struct Photon {
       : throughput(flux), position(position), wi(wi) {}
 };
 
+// Point concept
 template <typename T>
 concept Point = requires(T& x, int i) {
   { T::dim } -> std::convertible_to<int>;  // dimension
   { x[i] } -> std::convertible_to<float>;  // element access
 };
 
-// compute squared distance between given points
+// compute the squared distance between given points
 // NOTE: assume PointT and PointU has the same dimension
 template <typename PointT, typename PointU>
 requires Point<PointT> && Point<PointU>
@@ -39,6 +40,7 @@ inline float distance2(const PointT& p1, const PointU& p2) {
   return dist2;
 }
 
+// implementation of kd-tree
 template <typename PointT>
 requires Point<PointT>
 class KdTree {
@@ -54,7 +56,7 @@ class KdTree {
 
   std::vector<Node> nodes;  // array of tree nodes
   const PointT* points;     // pointer to array of points
-  int nPoints;
+  int nPoints;              // number of points
 
   void buildNode(int* indices, int n_points, int depth) {
     if (n_points <= 0) return;

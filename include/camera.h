@@ -36,6 +36,8 @@ class Camera {
     spdlog::info("[Camera] focal_length: {}", focal_length);
   }
 
+  // sample ray emitting from the given sensor coordinate
+  // NOTE: uv: [-1, -1] x [1, 1], sensor coordinate
   bool sampleRay(const Vec2f& uv, Ray& ray, float& pdf) const {
     const Vec3f pinholePos = position + focal_length * forward;
     const Vec3f sensorPos = position + uv[0] * right + uv[1] * up;

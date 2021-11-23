@@ -7,6 +7,8 @@
 #include "material.h"
 #include "triangle.h"
 
+// primitive provides an abstraction layer of the object's shape(triangle),
+// material, area light
 class Primitive {
  private:
   const Triangle* triangle;
@@ -20,6 +22,7 @@ class Primitive {
 
   bool hasAreaLight() const { return areaLight != nullptr; }
 
+  // return emission
   Vec3f Le(const SurfaceInfo& surfInfo, const Vec3f& dir) const {
     return areaLight->Le(surfInfo, dir);
   }
@@ -37,6 +40,8 @@ class Primitive {
     return bxdf->evaluate(wo_l, wi_l);
   }
 
+  // sample direction by BxDF
+  // its pdf is propotional to the shape od BxDF
   Vec3f sampleBxDF(const Vec3f& wo, const SurfaceInfo& surfInfo,
                    Sampler& sampler, Vec3f& wi, float& pdf) const {
     // world to local transform
@@ -53,6 +58,7 @@ class Primitive {
     return f;
   }
 
+  // get all samplable direction
   std::vector<DirectionPair> sampleAllBxDF(const Vec3f& wo,
                                            const SurfaceInfo& surfInfo) const {
     // world to local transform

@@ -5,6 +5,7 @@
 #include "sampler.h"
 #include "triangle.h"
 
+// light interface
 class Light {
  public:
   virtual Vec3f Le(const SurfaceInfo& info, const Vec3f& dir) const = 0;
@@ -15,21 +16,24 @@ class Light {
 
 class AreaLight : public Light {
  private:
-  const Vec3f le;
+  const Vec3f le;  // emission
   const Triangle* triangle;
 
  public:
   AreaLight(const Vec3f& le, const Triangle* triangle)
       : le(le), triangle(triangle) {}
 
+  // return emission
   Vec3f Le(const SurfaceInfo& info, const Vec3f& dir) const override {
     return le;
   }
 
+  // sample point on the light
   SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const override {
     return triangle->samplePoint(sampler, pdf);
   }
 
+  // sample direction from the light
   Vec3f sampleDirection(const SurfaceInfo& surfInfo, Sampler& sampler,
                         float& pdf) const override {
     const Vec3f dir = sampleCosineHemisphere(sampler.getNext2D(), pdf);

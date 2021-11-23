@@ -13,7 +13,7 @@ class Integrator {
   // do preliminary jobs before calling integrate
   virtual void build(const Scene& scene, Sampler& sampler) = 0;
 
-  // compute radiance coming from given ray
+  // compute radiance coming from the given ray
   virtual Vec3f integrate(const Ray& ray, const Scene& scene,
                           Sampler& sampler) const = 0;
 };
@@ -76,11 +76,22 @@ class PathTracing : public Integrator {
 // implementation of photon mapping
 class PhotonMapping : public Integrator {
  private:
+  // number of photons used for making global photon map
   const int nPhotonsGlobal;
+
+  // number of photons used for radiance estimation by global photon map
   const int nEstimationGlobal;
+
+  // number of photons for making caustics photon map
   const int nPhotonsCaustics;
+
+  // number of photons used for radiance estimation by caustics photon map
   const int nEstimationCaustics;
+
+  // maximum depth to estimate radiance by final gathering
   const int finalGatheringDepth;
+
+  // maximum depth of photon tracing, eye tracing
   const int maxDepth;
 
   PhotonMap globalPhotonMap;

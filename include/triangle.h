@@ -73,7 +73,7 @@ class Triangle {
            t3 * barycentric[1];
   }
 
-  // sample point on triangle
+  // sample point on the triangle
   SurfaceInfo samplePoint(Sampler& sampler, float& pdf) const {
     SurfaceInfo ret;
 

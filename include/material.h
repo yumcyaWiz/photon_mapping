@@ -9,6 +9,8 @@ enum class BxDFType { DIFFUSE, SPECULAR };
 
 using DirectionPair = std::pair<Vec3f, Vec3f>;
 
+// represent BRDF or BTDF
+// direction vectors are in tangent space(x: tangent, y: normal, z: bitangent)
 class BxDF {
  private:
   BxDFType type;
@@ -19,9 +21,12 @@ class BxDF {
   static float cosTheta(const Vec3f& v) { return v[1]; }
   static float absCosTheta(const Vec3f& v) { return std::abs(cosTheta(v)); }
 
+  // compute reflection direction
   static Vec3f reflect(const Vec3f& v, const Vec3f& n) {
     return -v + 2.0f * dot(v, n) * n;
   }
+
+  // compute refracted direction
   static bool refract(const Vec3f& v, const Vec3f& n, float iorI, float iorT,
                       Vec3f& t) {
     const Vec3f t_h = -iorI / iorT * (v - dot(v, n) * n);
@@ -34,7 +39,7 @@ class BxDF {
     return true;
   }
 
-  // schlick approximation
+  // schlick approximation of fresnel reflectance
   static float fresnel(float cosThetaI, float iorI, float iorT) {
     const float f0 =
         (iorI - iorT) * (iorI - iorT) / ((iorI + iorT) * (iorI + iorT));
@@ -48,14 +53,14 @@ class BxDF {
   // evaluate BxDF
   virtual Vec3f evaluate(const Vec3f& wo, const Vec3f& wi) const = 0;
 
-  // sample direction
-  // pdf is set to be propotional to BxDF
+  // sample direction by BxDF.
+  // its pdf is propotional to the shape of BxDF
   virtual Vec3f sampleDirection(const Vec3f& wo, Sampler& sampler, Vec3f& wi,
                                 float& pdf) const = 0;
 
-  // sample all samplable direction
+  // get all samplable direction
   // NOTE: for specular only
-  // NOTE: used for drawing fresnel reflection at low number of samples
+  // NOTE: used for drawing fresnel reflection nicely at low number of samples
   virtual std::vector<DirectionPair> sampleAllDirection(
       const Vec3f& wo) const = 0;
 };

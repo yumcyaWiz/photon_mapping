@@ -304,6 +304,7 @@ class Scene {
     rtcCommitScene(scene);
   }
 
+  // ray-scene intersection
   bool intersect(const Ray& ray, IntersectInfo& info) const {
     RTCRayHit rayhit;
     rayhit.ray.org_x = ray.origin[0];

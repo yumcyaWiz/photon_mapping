@@ -230,11 +230,13 @@ inline void orthonormalBasis(const Vec3f& n, Vec3f& t, Vec3f& b) {
   b = normalize(cross(t, n));
 }
 
+// transform direction from world to local
 inline Vec3f worldToLocal(const Vec3f& v, const Vec3f& lx, const Vec3f& ly,
                           const Vec3f& lz) {
   return Vec3f(dot(v, lx), dot(v, ly), dot(v, lz));
 }
 
+// transform direction from local to world
 inline Vec3f localToWorld(const Vec3f& v, const Vec3f& lx, const Vec3f& ly,
                           const Vec3f& lz) {
   Vec3f ret;
@@ -244,6 +246,7 @@ inline Vec3f localToWorld(const Vec3f& v, const Vec3f& lx, const Vec3f& ly,
   return ret;
 }
 
+// compute cartesian coordinates from spherical coordinates
 inline Vec3f sphericalToCartesian(float theta, float phi) {
   return Vec3f(std::cos(phi) * std::sin(theta), std::cos(theta),
                std::sin(phi) * std::sin(theta));
@@ -265,8 +268,8 @@ struct Ray {
 struct SurfaceInfo {
   Vec3f position;
   Vec3f normal;
-  Vec3f dpdu;
-  Vec3f dpdv;
+  Vec3f dpdu;  // tangent vector
+  Vec3f dpdv;  // bitangent vector
   Vec2f texcoords;
   Vec2f barycentric;
 };
@@ -275,7 +278,7 @@ struct SurfaceInfo {
 class Primitive;
 
 struct IntersectInfo {
-  float t;
+  float t;  // distance to the hit point
   SurfaceInfo surfaceInfo;
   const Primitive* hitPrimitive;
 };
