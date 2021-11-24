@@ -109,7 +109,7 @@ class KdTree {
   requires Point<PointU>
   void searchKNearestNode(int nodeIdx, const PointU& queryPoint, int k,
                           KNNQueue& queue) const {
-    if (nodeIdx >= nodes.size()) return;
+    if (nodeIdx == -1) return;
 
     const Node& node = nodes[nodeIdx];
 
