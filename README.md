@@ -110,6 +110,7 @@ This model is available under `models/`
 
 * [spdlog](https://github.com/gabime/spdlog)
 * [Embree](https://github.com/embree/embree)
+* [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
 
 ## References
 
