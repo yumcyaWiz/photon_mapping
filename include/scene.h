@@ -19,7 +19,6 @@ const std::shared_ptr<BxDF> createDefaultBxDF() {
 
 // create BxDF from tinyobj material
 const std::shared_ptr<BxDF> createBxDF(const tinyobj::material_t& material) {
-  // sRGB to linear
   const Vec3f kd =
       Vec3f(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
   const Vec3f ks =
