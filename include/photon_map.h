@@ -17,8 +17,8 @@ struct Photon {
   float operator[](int i) const { return position[i]; }
 
   Photon() {}
-  Photon(const Vec3f& flux, const Vec3f& position, const Vec3f& wi)
-      : throughput(flux), position(position), wi(wi) {}
+  Photon(const Vec3f& throughput, const Vec3f& position, const Vec3f& wi)
+      : throughput(throughput), position(position), wi(wi) {}
 };
 
 // Point concept
