@@ -27,6 +27,7 @@ minimal but extensible header only implementation of photon mapping in C++.
 |BUILD_TESTS|build tests|
 
 ```
+git submodule update --init
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
