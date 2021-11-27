@@ -267,7 +267,8 @@ struct Ray {
 
 struct SurfaceInfo {
   Vec3f position;
-  Vec3f normal;
+  Vec3f geometricNormal;
+  Vec3f shadingNormal;
   Vec3f dpdu;  // tangent vector
   Vec3f dpdv;  // bitangent vector
   Vec2f texcoords;

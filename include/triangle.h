@@ -98,10 +98,10 @@ class Triangle {
                    barycentric[0] * p2 + barycentric[1] * p3;
 
     // compute normal
-    ret.normal = computeShadingNormal(barycentric);
+    ret.shadingNormal = computeShadingNormal(barycentric);
 
     // compute dpdu, dpdv
-    orthonormalBasis(ret.normal, ret.dpdu, ret.dpdv);
+    orthonormalBasis(ret.shadingNormal, ret.dpdu, ret.dpdv);
 
     // compute texcoords
     ret.texcoords = getTexcoords(barycentric);

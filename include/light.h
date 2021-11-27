@@ -39,7 +39,8 @@ class AreaLight : public Light {
     const Vec3f dir = sampleCosineHemisphere(sampler.getNext2D(), pdf);
 
     // transform direction from local to world
-    return localToWorld(dir, surfInfo.dpdu, surfInfo.normal, surfInfo.dpdv);
+    return localToWorld(dir, surfInfo.dpdu, surfInfo.shadingNormal,
+                        surfInfo.dpdv);
   }
 };
 
