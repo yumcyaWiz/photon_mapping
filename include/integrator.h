@@ -59,7 +59,8 @@ class PathTracing : public Integrator {
         Vec3f dir;
         float pdf_dir;
         Vec3f f = info.hitPrimitive->sampleBxDF(
-            -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
+            -ray.direction, info.surfaceInfo, TransportDirection::FROM_CAMERA,
+            sampler, dir, pdf_dir);
 
         // update throughput and ray
         throughput *= f * std::abs(dot(dir, info.surfaceInfo.normal)) / pdf_dir;
@@ -109,8 +110,8 @@ class PhotonMapping : public Integrator {
     Vec3f Lo;
     for (const int photon_idx : photon_indices) {
       const Photon& photon = globalPhotonMap.getIthPhoton(photon_idx);
-      const Vec3f f =
-          info.hitPrimitive->evaluateBxDF(wo, photon.wi, info.surfaceInfo);
+      const Vec3f f = info.hitPrimitive->evaluateBxDF(
+          wo, photon.wi, info.surfaceInfo, TransportDirection::FROM_CAMERA);
       Lo += f * photon.throughput;
     }
     if (photon_indices.size() > 0) {
@@ -131,8 +132,8 @@ class PhotonMapping : public Integrator {
     Vec3f Lo;
     for (const int photon_idx : photon_indices) {
       const Photon& photon = causticsPhotonMap.getIthPhoton(photon_idx);
-      const Vec3f f =
-          info.hitPrimitive->evaluateBxDF(wo, photon.wi, info.surfaceInfo);
+      const Vec3f f = info.hitPrimitive->evaluateBxDF(
+          wo, photon.wi, info.surfaceInfo, TransportDirection::FROM_CAMERA);
       Lo += f * photon.throughput;
     }
     if (photon_indices.size() > 0) {
@@ -171,7 +172,8 @@ class PhotonMapping : public Integrator {
     IntersectInfo info_shadow;
     if (!scene.intersect(ray_shadow, info_shadow)) {
       const Vec3f Le = light->Le(light_surf, -wi);
-      const Vec3f f = info.hitPrimitive->evaluateBxDF(wo, wi, info.surfaceInfo);
+      const Vec3f f = info.hitPrimitive->evaluateBxDF(
+          wo, wi, info.surfaceInfo, TransportDirection::FROM_CAMERA);
       const float cos = std::abs(dot(wi, info.surfaceInfo.normal));
       Ld = f * cos * Le / (pdf_choose_light * pdf_dir);
     }
@@ -191,8 +193,9 @@ class PhotonMapping : public Integrator {
     // sample direction by BxDF
     Vec3f dir;
     float pdf_dir;
-    const Vec3f f = info.hitPrimitive->sampleBxDF(wo, info.surfaceInfo, sampler,
-                                                  dir, pdf_dir);
+    const Vec3f f = info.hitPrimitive->sampleBxDF(
+        wo, info.surfaceInfo, TransportDirection::FROM_CAMERA, sampler, dir,
+        pdf_dir);
     const float cos = std::abs(dot(info.surfaceInfo.normal, dir));
 
     // trace final gathering ray
@@ -294,7 +297,8 @@ class PhotonMapping : public Integrator {
           Vec3f dir;
           float pdf_dir;
           const Vec3f f = info.hitPrimitive->sampleBxDF(
-              -ray.direction, info.surfaceInfo, sampler, dir, pdf_dir);
+              -ray.direction, info.surfaceInfo, TransportDirection::FROM_CAMERA,
+              sampler, dir, pdf_dir);
 
           // recursively raytrace
           const Ray next_ray(info.surfaceInfo.position, dir);
@@ -309,8 +313,8 @@ class PhotonMapping : public Integrator {
         else {
           // sample all direction
           const std::vector<DirectionPair> dir_pairs =
-              info.hitPrimitive->sampleAllBxDF(-ray.direction,
-                                               info.surfaceInfo);
+              info.hitPrimitive->sampleAllBxDF(-ray.direction, info.surfaceInfo,
+                                               TransportDirection::FROM_CAMERA);
 
           // recursively raytrace
           Vec3f Lo;
@@ -413,9 +417,9 @@ class PhotonMapping : public Integrator {
           // sample direction by BxDF
           Vec3f dir;
           float pdf_dir;
-          const Vec3f f =
-              info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
-                                            sampler_per_thread, dir, pdf_dir);
+          const Vec3f f = info.hitPrimitive->sampleBxDF(
+              -ray.direction, info.surfaceInfo, TransportDirection::FROM_LIGHT,
+              sampler_per_thread, dir, pdf_dir);
 
           // update throughput and ray
           throughput *=
@@ -501,6 +505,7 @@ class PhotonMapping : public Integrator {
             float pdf_dir;
             const Vec3f f =
                 info.hitPrimitive->sampleBxDF(-ray.direction, info.surfaceInfo,
+                                              TransportDirection::FROM_LIGHT,
                                               sampler_per_thread, dir, pdf_dir);
 
             // update throughput and ray
