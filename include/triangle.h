@@ -11,7 +11,7 @@ class Triangle {
   const float* texcoords;
 
   const uint32_t faceID;
-
+  Vec3f geometricNormal;
   float surfaceArea;
 
  public:
@@ -22,11 +22,15 @@ class Triangle {
         normals(normals),
         texcoords(texcoords),
         faceID(faceID) {
-    // compute surface area
     const Vec3ui vidx = getIndices();
     const Vec3f p1 = getVertexPosition(vidx[0]);
     const Vec3f p2 = getVertexPosition(vidx[1]);
     const Vec3f p3 = getVertexPosition(vidx[2]);
+
+    // compute geometric normal
+    geometricNormal = normalize(cross(p2 - p1, p3 - p1));
+
+    // compute surface area
     surfaceArea = 0.5f * length(cross(p2 - p1, p3 - p1));
   }
 
@@ -53,8 +57,11 @@ class Triangle {
                   indices[3 * faceID + 2]);
   }
 
-  // compute face normal at given position
-  Vec3f getFaceNormal(const Vec2f& barycentric) const {
+  // return geometric normal
+  Vec3f getGeometricNormal() const { return geometricNormal; }
+
+  // compute shading normal at given position
+  Vec3f computeShadingNormal(const Vec2f& barycentric) const {
     const Vec3ui vidx = getIndices();
     const Vec3f n1 = getVertexNormal(vidx[0]);
     const Vec3f n2 = getVertexNormal(vidx[1]);
@@ -91,7 +98,7 @@ class Triangle {
                    barycentric[0] * p2 + barycentric[1] * p3;
 
     // compute normal
-    ret.normal = getFaceNormal(barycentric);
+    ret.normal = computeShadingNormal(barycentric);
 
     // compute dpdu, dpdv
     orthonormalBasis(ret.normal, ret.dpdu, ret.dpdv);
