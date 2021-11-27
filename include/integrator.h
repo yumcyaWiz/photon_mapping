@@ -16,6 +16,22 @@ class Integrator {
   // compute radiance coming from the given ray
   virtual Vec3f integrate(const Ray& ray, const Scene& scene,
                           Sampler& sampler) const = 0;
+
+  // compute cosine term
+  static float cosTerm(const Vec3f& wo, const Vec3f& wi,
+                       const SurfaceInfo& surfaceInfo,
+                       const TransportDirection& transport_dir) {
+    if (transport_dir == TransportDirection::FROM_CAMERA) {
+      return std::abs(dot(wi, surfaceInfo.shadingNormal));
+    } else if (transport_dir == TransportDirection::FROM_LIGHT) {
+      return std::abs(dot(wo, surfaceInfo.shadingNormal)) *
+             std::abs(dot(wi, surfaceInfo.geometricNormal)) /
+             std::abs(dot(wo, surfaceInfo.geometricNormal));
+    } else {
+      spdlog::error("invalid transport direction");
+      std::exit(EXIT_FAILURE);
+    }
+  }
 };
 
 // implementation of path tracing
@@ -63,8 +79,10 @@ class PathTracing : public Integrator {
             sampler, dir, pdf_dir);
 
         // update throughput and ray
-        throughput *=
-            f * std::abs(dot(dir, info.surfaceInfo.shadingNormal)) / pdf_dir;
+        throughput *= f *
+                      cosTerm(-ray.direction, dir, info.surfaceInfo,
+                              TransportDirection::FROM_CAMERA) /
+                      pdf_dir;
         ray = Ray(info.surfaceInfo.position, dir);
       } else {
         break;
@@ -304,7 +322,10 @@ class PhotonMapping : public Integrator {
           // recursively raytrace
           const Ray next_ray(info.surfaceInfo.position, dir);
           const Vec3f throughput =
-              f * std::abs(dot(dir, info.surfaceInfo.shadingNormal)) / pdf_dir;
+              f *
+              cosTerm(-ray.direction, dir, info.surfaceInfo,
+                      TransportDirection::FROM_CAMERA) /
+              pdf_dir;
 
           return throughput *
                  integrateRecursive(next_ray, scene, sampler, depth + 1);
@@ -423,8 +444,10 @@ class PhotonMapping : public Integrator {
               sampler_per_thread, dir, pdf_dir);
 
           // update throughput and ray
-          throughput *=
-              f * std::abs(dot(dir, info.surfaceInfo.shadingNormal)) / pdf_dir;
+          throughput *= f *
+                        cosTerm(-ray.direction, dir, info.surfaceInfo,
+                                TransportDirection::FROM_LIGHT) /
+                        pdf_dir;
           ray = Ray(info.surfaceInfo.position, dir);
         } else {
           // photon goes to the sky
@@ -511,7 +534,8 @@ class PhotonMapping : public Integrator {
 
             // update throughput and ray
             throughput *= f *
-                          std::abs(dot(dir, info.surfaceInfo.shadingNormal)) /
+                          cosTerm(-ray.direction, dir, info.surfaceInfo,
+                                  TransportDirection::FROM_LIGHT) /
                           pdf_dir;
             ray = Ray(info.surfaceInfo.position, dir);
           } else {
