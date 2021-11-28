@@ -16,7 +16,7 @@ int main() {
   Camera camera(Vec3f(0, 1, 6), Vec3f(0, 0, -1), 0.25 * PI);
 
   Scene scene;
-  scene.loadModel("CornellBox-Water.obj");
+  scene.loadModel("cornellbox-water2.obj");
   scene.build();
 
   // photon tracing and build photon map

@@ -23,7 +23,7 @@ int main() {
       if (camera.sampleRay(Vec2f(u, v), ray, pdf)) {
         IntersectInfo info;
         if (scene.intersect(ray, info)) {
-          image.setPixel(i, j, 0.5f * (info.surfaceInfo.normal + 1.0f));
+          image.setPixel(i, j, 0.5f * (info.surfaceInfo.shadingNormal + 1.0f));
         }
       } else {
         image.setPixel(i, j, Vec3f(0));

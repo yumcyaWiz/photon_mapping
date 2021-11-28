@@ -18,7 +18,7 @@ class Integrator {
                           Sampler& sampler) const = 0;
 
   // compute cosine term
-  // NOTE: need to account for the asymmetry of BSDF for photon tracing
+  // NOTE: need to account for the asymmetry of BSDF when photon tracing
   // https://pbr-book.org/3ed-2018/Light_Transport_III_Bidirectional_Methods/The_Path-Space_Measurement_Equation#x3-Non-symmetryDuetoShadingNormals
   // Veach, Eric. Robust Monte Carlo methods for light transport simulation.
   // Stanford University, 1998. Section 5.3
